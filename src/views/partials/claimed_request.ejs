@@ -1,0 +1,16 @@
+<div id="request_<%- requestId  %>" name="approved">  
+    <div class="card" style="padding:5px; margin:10px">
+      <div class="card-body">
+            <h2 class="card-title"></h2>
+            <h3 class="card-subtitle mb-2 text-muted"><%= typeof request.userName != 'undefined' ? request.userName : 'default' %></h3>
+              <h4 class="card-subtitle mb-2 text-muted"><% var date = request.uploadDate.toDate() %>
+                <% var month = date.getMonth() + 1 %>
+                <% var day = date.getDate() %>
+                <% var year = date.getFullYear() %>
+                <% var date = month + '/' + day + '/' + year %>
+                <%= date %></h4>
+            <p class="card-text" style="font-size: 16px;"><%= typeof request.message != 'undefined' ? request.message : 'default' %></p>
+            <button class="btn btn-primary" onclick="openRequest('<%- requestId  %>')">View Request</button>
+      </div>
+    </div>
+    </div>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body >
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+    
+    <div class="create-post-wrapper">
+            <div class="form-group">
+                
+                <div class="title-label-wrapper">
+                    <h1 for="newPost">New Post</h1>
+                </div>
+                
+
+                <h4 id="postHelp" class="form-text">This post will be added to <%= typeof community.name != 'undefined' ? community.name : 'community name' %> </h4>
+                <input type="text" class="form-control" id="newPostTitle" aria-describedby="textHelp" name='Title' placeholder="Title" maxlength="47" required>
+                <input type="hidden" name="communityId" value="<%- communityId %>">
+
+            </div>
+
+            <div class="form-group">
+                <textarea name='body_text'class="form-control" id="bodyText" placeholder="Post Text" rows="3" required></textarea>
+            </div>
+
+            <div class="file-upload-button-wrapper" style="width: 15%;">
+                <h4 for="postImageFile">Post Image</h4>
+                <p class="hide" style="color:red" id="imageVal">Please submit an image for the post.</p>
+                <input name='' type="file" style="display: none;" id="ImgUploader" name='ImgUploader' data-show-upload="true" data-show-caption="true" accept="image/*" required="true">
+                <input type="button" class="form-control-file" value="Browse..." onclick="document.getElementById('ImgUploader').click();" />
+
+                <progress id="previewUploaderBar" class="d-none" max="100"></progress>
+            </div>
+
+
+            <div class="file-upload-button-wrapper" id='fileSelector' style="width: 15%;">
+                <h4 for="postImageFile">Add 3D Models</h4>
+                <input type="file" style="display: none;"  id="chooseFileButton" accept=".stl">
+                <input type="button" class="form-control-file" value="Browse..." onclick="document.getElementById('chooseFileButton').click();" />
+                <progress id="uploaderBar" class="d-none" max="100"></progress>
+            </div>
+            <div id="FileList"></div>
+            <script>
+                var currentTags = [];
+            </script>
+            <h4>Add Tags</h4>
+            <div id="showTags" style="display:flex"></div>
+            <div class="input-group input-group-sm mb-3" style="width: 15%">
+                <div class="input-group-prepend">
+                  <button class="btn btn-outline-secondary" type="button" id="addTagBtn">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                  </svg>
+                </button>
+                </div>
+                <input id="tagInput" type="text" class="form-control" placeholder="" aria-describedby="addTagBtn" pattern="[a-zA-Z0-9#]*">
+              </div>
+
+            <div class="submit-button-wrapper text-center">
+                <button name="submitBtn" class="btn btn-primary" style="font-size: 16px;" onClick="ClickSubmit()">Submit</button>
+            </div>
+
+    </div>
+</main>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+
+</body>
+</html>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/3.7.4/firebase.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+<script>
+
+    var fileCounter = 0;
+    var files = [];
+    var fileObjs = [];
+    var previewImg;
+    var previewImgObj = {
+        url: "https://firebasestorage.googleapis.com/v0/b/printapart-d7319.appspot.com/o/preview_images%2FlogoImage.png?alt=media&token=d4f08f8c-246b-4406-9259-3b8d8cf76ba8",
+        name: "Default"
+    }
+
+    // Initialize Firebase
+    var config = {
+        storageBucket: "gs://printapart-d7319.appspot.com"
+    };
+    firebase.initializeApp(config);
+    //-------------------------------------
+
+    // Restricts input for the given textbox to the given inputFilter function.
+    function setInputFilter(textbox, inputFilter) {
+        ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function(event) {
+            textbox.addEventListener(event, function() {
+            if (inputFilter(this.value)) {
+                this.oldValue = this.value;
+                this.oldSelectionStart = this.selectionStart;
+                this.oldSelectionEnd = this.selectionEnd;
+            } else if (this.hasOwnProperty("oldValue")) {
+                this.value = this.oldValue;
+                this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+            } else {
+                this.value = "";
+            }
+            });
+        });
+    }
+
+    setInputFilter(document.getElementById("tagInput"), function(value) {
+        return /^([a-zA-Z0-9]*)$/.test(value); // Allow alphanumeric and '#' characters only, using a RegExp
+    });
+
+    $('#newPostTitle').on("focus", function(event){
+        var title = document.getElementById('newPostTitle')
+        if (title.style.color == "red") {
+            title.value = "";
+            title.style = "color:black;"
+        }
+    });
+
+    $('#bodyText').on("focus", function(event){
+        var bodyText = document.getElementById('bodyText')
+        if (bodyText.style.color == "red") {
+            bodyText.value = "";
+            bodyText.style = "color:black;"
+        }
+    });
+
+    $('#ImgUploader').on("change", function(event){
+        var imageVal = document.getElementById('imageVal');
+        imageVal.setAttribute('class', 'hide');
+    });
+
+    $('#addTagBtn').on("click", function(event){
+        
+        // Add tag to hidden input
+        var tagVal = document.getElementById('tagInput').value.toLowerCase();
+        if(tagVal == ""){
+            alert("Please enter a tag.")
+            return;
+        }
+        currentTags.push(tagVal);
+        console.log(currentTags);
+        var newLabel = document.createElement('span');
+        newLabel.setAttribute('id', tagVal);
+        newLabel.setAttribute('class', 'badge rounded-pill bg-primary');
+        newLabel.innerHTML = tagVal + " " + `<svg xmlns="http://www.w3.org/2000/svg" id="` + tagVal +`Remove" name="removeTag" onclick=RemoveTag(`+ JSON.stringify(tagVal) + `) tagwidth="16" height="16" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16">
+                                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                                                </svg>`;
+        newLabel.style = "color:white;margin:5px;padding:5px"
+        $("#showTags").append(newLabel);
+        document.getElementById('tagInput').value = "";
+
+    });
+
+    
+    function RemoveTag(tagValue) {
+        console.log("#" + tagValue);
+        document.getElementById(tagValue).remove();
+        currentTags.splice(currentTags.indexOf(tagValue),1);
+        console.log(currentTags)
+    }
+
+    function ClickSubmit(){
+        var title = document.getElementById('newPostTitle');
+        var body = document.getElementById('bodyText');
+        var image = document.getElementById('ImgUploader');
+
+        if(!(title.value)){
+            title.style = "color:red;";
+            title.value = "Please enter a title."
+        }
+        if (!(body.value)) {
+            body.style = "color:red;";
+            body.value = "Please enter a description."
+        } 
+        if (title.value && body.value && !(title.value == "Please enter a title.") && !(body.value == "Please enter a description.")) {
+            console.log("about to submit");
+            SubmitPost();
+        }
+    }
+    
+    async function SubmitPost(){
+
+        await uploadFiles();
+
+        var postData = {
+            title:document.getElementById("newPostTitle").value,
+            files: fileObjs,
+            Image:previewImgObj,
+            community: "<%- communityId %>",
+            body_text: document.getElementById("bodyText").value,
+            user: "<%- uid %>",
+            userName: "<%- user.userName %>",
+            tags:currentTags
+
+        }
+
+        $.ajax({
+        url: '/add_post',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({postData:postData}),
+        success: function(data){
+            window.location.href = '/community_feed?commId=<%- communityId %>';
+        }
+      })
+    }
+
+
+    function RemoveFile(fileName)
+    {
+        for( var i = 0; i < files.length; i++){ 
+            if ( files[i].name === fileName) { 
+                files.splice(i, 1); 
+            }
+        }
+    }
+
+    var fileButton = document.getElementById('chooseFileButton');
+    fileButton.addEventListener('change', function(e){
+
+        var file = e.target.files[0];
+
+        if(file == undefined)
+        {
+            return;
+        }
+
+        files.push(file);
+
+        AddNewFileHtml(file);
+    });
+
+    var previewImgBtn = document.getElementById('ImgUploader');
+    previewImgBtn.addEventListener('change', async function(e){
+
+        var date = new Date();
+        var mil = Math.round(date.getTime() / 1000);
+        previewImg = e.target.files[0];
+
+        if(previewImg == undefined)
+        {
+            return;
+        }
+        var progBar = document.getElementById('previewUploaderBar');
+
+        if(progBar.classList.contains("d-none"))
+        {
+            progBar.classList.remove("d-none");
+        }
+
+        previewImgObj = await uploadFile(previewImg,"previewUploaderBar",mil,'preview_images/<%- uid %>/');
+    });
+
+    function AddNewFileHtml(file)
+    {
+        parentElement = document.getElementById('FileList');
+
+        childElement = document.createElement('div');
+        appendChildElement = parentElement.appendChild(childElement);
+        appendChildElement.id = file.name;
+
+        childPar = document.createElement('p');
+        appendedPar = appendChildElement.appendChild(childPar);
+        appendedPar.classList.add('fileInline');
+        appendedPar.innerHTML = file.name;
+
+        childBtn = document.createElement('div');
+        appendedBtn = childElement.appendChild(childBtn);
+        appendedBtn.classList.add('btn');
+        appendedBtn.classList.add('btn-secondary');
+        appendedBtn.classList.add('btn-sm');
+        appendedBtn.classList.add('fileInline');
+        appendedBtn.innerHTML = 'remove';
+        appendedBtn.onclick = function(){
+            RemoveFile(file.name);
+            var listElement = document.getElementById(file.name);
+            listElement.remove();
+        };
+    }
+
+    // This function toggles the visiblity of the buttons if multiple files are uploaded.
+    function toggleVisible(id) {
+        var inputObj = document.getElementById(id); 
+        if(inputObj.classList.contains('d-none')) {
+            inputObj.classList.remove('d-none')
+        } else {
+            inputObj.classList.add('d-none')
+        }
+    }
+
+    async function uploadFiles()
+    {
+        var date = new Date();
+        var mil = Math.round(date.getTime() / 1000);
+
+        var progBar = document.getElementById('uploaderBar');
+        if(progBar.classList.contains("d-none"))
+        {
+            progBar.classList.remove("d-none");
+        }
+
+        for (i = 0; i < files.length; i++) {
+            console.log(files[i]);
+            var fileObj = await uploadFile(files[i],"uploaderBar",mil,'3d_models/<%- uid %>/');
+            var fileUrl = 
+            fileObjs.push(fileObj);
+            
+        }
+    }
+
+    // This function 
+    async function uploadFile(file, progressId,time,folder){
+        var resultUrl;
+        var progressObj = document.getElementById(progressId);
+        var storageRef = firebase.storage().ref(folder + "<%- uid %>_" +time +"_"+ file.name);
+
+        var task = storageRef.put(file);
+
+        task.on('state_changed', 
+        function progress(snapshot) {
+            var percentage = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
+            progressObj.value = percentage;
+
+        }, 
+        function error(err) {
+            
+        });
+
+        await task;
+        var url = await storageRef.getDownloadURL();
+        var name = await storageRef.fullPath;
+        var fileObj = {
+            url:url,
+            name:name,
+            shortName:file.name
+        }
+        return fileObj;
+
+    }
+
+    function removeFile(divId, dataId){
+        var dataObj = document.getElementById(dataId);
+        toggleVisible(divId);
+        dataObj.value = "";     
+    }
+</script>

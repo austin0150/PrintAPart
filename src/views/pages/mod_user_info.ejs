@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body >
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+
+    <div class="container">
+        <h1>User Profile Information</h1>
+        <form method="POST" action='/update_user_info'>
+            <div class="form-group">
+                <label for="readUid">UID</label>
+                <input type="text" class="form-control" id="readUid" name="uid" value=<%= typeof user.id != 'undefined' ? user.id : 'uid' %> readonly>
+            </div>
+            <div class="form-group">
+                <label for="inputUserName">Username</label>
+                <input type="text" class="form-control" id="inputUserName" name="userName" value=<%= typeof user.data().userName != 'undefined' ? user.data().userName : 'userName' %>>
+            </div>
+              <div class="form-group">
+                <label for="inputFirstName">First Name</label>
+                <input type="text" class="form-control" id="inputFirstName" name="FirstName" placeholder="FirstName" value=<%= typeof user.data().FirstName != 'undefined' ? user.data().FirstName : 'FirstName' %>>
+            </div>
+            <div class="form-group">
+                <label for="inputLastName">Last Name</label>
+                <input type="text" class="form-control" id="inputLastName" name="LastName" placeholder="LastName" value=<%= typeof user.data().LastName != 'undefined' ? user.data().LastName : 'LastName' %>>
+            </div>
+            <div class="form-group">
+                <label for="inputFirstName">Email</label>
+                <input type="text" class="form-control" id="inputEmail" name="email" placeholder="email" value=<%= typeof user.data().email != 'undefined' ? user.data().email : 'email' %>>
+            </div>
+            <div class="form-group">
+                <label for="inputFirstName">Zip Code</label>
+                <input type="text" class="form-control" id="inputZip" name="ZipCode" placeholder="zip" value=<%= typeof user.data().ZipCode != 'undefined' ? user.data().ZipCode : 'ZipCode' %>>
+            </div>
+
+            <button class="btn btn-primary" type="submit">Submit</button>
+            
+        </form>
+        <br>
+        <button class="btn btn-secondary" onclick="redirectToManageUsers()">Cancel</button>
+    </div>
+    
+</main>
+
+<footer >
+    <%- include('../partials/footer'); %>
+</footer>
+
+<script>
+    function redirectToManageUsers()
+    {
+        window.location.href = '/manage_users';
+    }
+</script>
+</body>
+</html>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>

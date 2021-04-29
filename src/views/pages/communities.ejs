@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+    <nav class="navbar navbar-expand-sm navbar-light bg-light" style="margin-top: 15px;">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <form class="form-inline my-2 my-lg-0" action="/search_communities" method="POST">
+                <!-- <input class="form-control mr-sm-2" name="communitySearch" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button> -->
+                <input class="form-control mr-sm-2" id="searchbar" name="search" placeholder="Search communities..." onkeyup="search_communities()" type="text">
+            </form>
+        </div>
+    </nav>
+
+    <br>
+    <center>
+    <h1>Our Communities</h1>
+    </center>
+    <div class="container" style="margin-top: 15px;">
+        <div class="card-deck" style="justify-content: center;">
+        <% communities.forEach(function(community) { %>
+            <%- include('../partials/community_tile', {community : community.data(), commId : community.id}); %>
+        <% }); %>
+        </div>
+    </div>
+        
+</main>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+
+</body>
+</html>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+<script>
+    function openComm(commId)
+    {
+        window.location.href = '/community_feed?commId='+commId;
+    }
+
+function search_communities() { 
+    let input = document.getElementById('searchbar').value 
+    input=input.toLowerCase(); 
+    let card = document.getElementsByClassName('card border-primary');
+    console.log(card) 
+    
+    for (i = 0; i < card.length; i++) {  
+        if (!(card[i].querySelector('.card-title').innerHTML.toLowerCase().includes(input) ||
+              card[i].querySelector('.card-text').innerHTML.toLowerCase().includes(input) ||
+              card[i].querySelector('.card-subtitle').innerHTML.toLowerCase().includes(input))) { 
+            card[i].style.display="none"; 
+        } 
+        else { 
+            card[i].style.display="block";                  
+        } 
+    } 
+}
+</script>

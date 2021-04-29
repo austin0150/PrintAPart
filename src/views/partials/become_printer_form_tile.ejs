@@ -1,0 +1,8 @@
+
+<div class="card" onclick="openBecomePrinterForm('<%- formID  %>')">
+    <div class="card-body">
+        <h4 class="card-title"><%= typeof form.fName != 'undefined' ? form.fName : 'default' %> <%= typeof form.lName != 'undefined' ? form.lName : 'default' %></h4>
+        <h5 class="card-subtitle mb-2 text-muted"><%= typeof form.paypal_email != 'undefined' ? form.paypal_email : 'default' %></h5>
+        <button class="btn btn-primary mb-2" onclick="openBecomePrinterForm('<%- formID  %>')">Open Form</button>
+    </div>
+</div>

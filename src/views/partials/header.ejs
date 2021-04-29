@@ -1,0 +1,101 @@
+<!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="/">EJS</a>
+  <ul class="navbar-nav mr-auto">
+    <li class="nav-item">
+      <a class="nav-link" href="/">Home</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/about">About</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="/communities">Communities</a>
+    </li>
+  </ul>
+</nav> -->
+<nav class="navbar sticky-top navbar-expand-lg navbar-dark" style="background-color: #00308a">
+ 
+
+  <div class="navbar-logo-wrapper" style="padding-left: 2em;">
+    <a class="navbar-brand" href="/">
+      <img src="images/PAPLogo-WhiteText.png?raw=true" style = "max-height: 45px; max-width:100%; padding-left: 0px" alt = "PrintAPart Logo"></div>
+    </a>
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="navbar-collapse collapse" id="navbarSupportedContent">
+
+    <ul class="navbar-nav mr-auto" style="width:fit-content;">
+      <li class="nav-item">
+        <a class="nav-link" href="/">Home<span class="sr-only">(current)</span></a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="/about">About</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/communities">Communities</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/printer_map">Printer Map</a>
+      </li>
+      <%if (roles.includes('Admin') || roles.includes('Printer')) { %>
+        <li class="nav-item">
+          <a class="nav-link" href="/view_requests">View Requests</a>
+        </li>
+      <% } %>
+      <%if (roles.includes('Requester')) { %>
+        <li class="nav-item">
+          <a class="nav-link" href="/new_request">New Request</a>
+        </li>
+      <% } %>
+
+      <%if (roles.includes('Admin')) { %>
+        <li class="nav-item">
+          <a class="nav-link" href="/manage_users">User Management</a>
+        </li>
+      <% } %>
+
+      <%if (roles.includes('Admin')) { %>
+        <li class="nav-item">
+          <a class="nav-link" href="/manage_communities">Community Management</a>
+        </li>
+      <% } %>
+      </ul>
+
+  
+
+      <div stly="justify-content: right;">
+        <ul class="navbar-nav mr-auto" style="width:max-content;">
+          <%if (loggedIn) { %>
+            <li class="nav-item">
+              <a class="nav-link" href='/view_my_profile?uid=<%- uid %>'><%- user.FirstName %> <%- user.LastName %></a>
+            </li>
+          <% } %>
+    
+          <li class="nav-item">
+            <%if (loggedIn) { %>
+              <a class="nav-link" href="/logout">Log out</a>
+              <% } else{ %> 
+              <a class="nav-link" href="/login">Log In</a>
+            <% } %>
+          </li>
+          
+        </ul>
+      </div>
+
+      
+  </div>
+</nav>
+
+<script>
+  function navToViewMyInfo(){
+    window.location.href = '/view_my_profile?uid=<%- uid %>';
+  }
+
+  function navToLogout(){
+    window.location.href = '/logout';
+  }
+</script>

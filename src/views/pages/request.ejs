@@ -1,0 +1,651 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+  <head>
+      <%- include('../partials/head'); %>
+  </head>
+  <body>
+
+  <header>
+      <%- include('../partials/header'); %>
+  </header>
+
+  <main>
+      <br>   
+      <center>
+      <h2 style="padding: 20px;">Requester: <%- requesterData.FirstName %> <%- requesterData.LastName[0] %></h2>
+      <% if(printerData != undefined){ %>
+        <h2 style="padding: 20px">Printer: <%- printerData.FirstName %> <%- printerData.LastName[0] %> </h2>
+      <% } %>
+  </center>
+  <div style="margin:auto; width:60%">
+      <div class="card mb-3">
+          <!-- <img class="card-img-top" src="..." alt="Card image cap"> -->
+          <div class="card-body">
+              <div style="display:flex;justify-content: space-around;">
+                  <h3 class="card-title">Request Status: <%- statusDesc %></h3>
+                  <h3 class="card-title">Estimated Price: $<%= typeof requestData.calculatedPrice != 'undefined' ? requestData.calculatedPrice : 'Estimated Price' %></h3>
+                  <h3 class="card-title">Material: <%= typeof requestData.material != 'undefined' ? requestData.material : 'Material' %></h3>
+                  <h3 class="card-title">Weight: <%= typeof requestData.weight != 'undefined' ? requestData.weight : 'Weight' %> g</h3>
+              </div>
+            <br>
+            <p class="card-text"><%= typeof requestData.message != 'undefined' ? requestData.message : 'request message' %></p>
+            <p class="card-text"><small class="text-muted">Upload Date: <%= typeof requestData.uploadDate.toDate() != 'undefined' ? requestData.uploadDate.toDate() : 'Upload Date' %></small></p>
+            <p class="card-text"><small class="text-muted">Request ID: <%- requestId %></small></p>
+          </div>
+        </div>
+        <% requestData.files.forEach(function(file) { %>
+          <%if(file.shortName != undefined) { %>
+            <p><%- file.shortName %>
+            <a class="btn btn-sm btn-outline-primary" href="<%- file.url %>">Download</a>
+            <button class="btn btn-sm btn-outline-primary" onclick="changeSrc('<%- file.url %>')">Preview</button></p>
+          <% } %>
+        
+          
+        <% }); %>
+        <div id="preview" style="padding: 10px">
+          <iframe id="vs_iframe" src= "" style="border:0;margin:0 auto;width:75%;height:300px; display: none; "></iframe>
+        </div>
+
+
+          </div>
+          <center>
+              <% if ((requestData.StatusNumber == "2") && (roles.includes("Printer") && (requestData.uid != uid))) { %>
+                <button id="claimBtn_<%- requestId  %>" type="button" class="btn btn-success" onclick="claimRequestValidation('<%- requestId  %>')">Claim Request</button>
+              <% } else if ((requestData.StatusNumber == "3") && (roles.includes("Printer") && (requestData.claimedBy == uid) && (requestData.uid != uid))){ %>
+                <button id="printerApproveBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="printerApproveRequestValidation('<%- requestId  %>')">Approve Request</button>
+                <button id="dropBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="dropRequestValidation('<%- requestId  %>')">Drop Request</button>
+                <button id="flagBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="flagRequestValidation('<%- requestId  %>')">Flag Request</button>
+              <% } else if ((requestData.StatusNumber == "5") && (roles.includes("Printer")) && (requestData.claimedBy == uid) && (requestData.uid != uid)){ %>
+                  <button id="dropBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="dropRequestValidation('<%- requestId  %>')">Drop Request</button>
+                <button id="flagBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="flagRequestValidation('<%- requestId  %>')">Flag Request</button>
+              <% } else if ((requestData.StatusNumber == "1") && (roles.includes("Admin"))){ %>
+                <button id="approveBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="approveRequestValidation('<%- requestId  %>')">Approve</button>
+                <button id="denyBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="denyRequestValidation('<%- requestId  %>')">Deny</button>
+              <% } else if ((uid == requestData.claimedBy) && (requestData.StatusNumber == "6")){ %>
+                <button type="button" class="btn btn-primary" onclick="CompleteRequest('<%- requestId %>')">Complete Request</button>
+              <% } else if ((uid == requestData.uid) && (requestData.StatusNumber == "8")){ %>
+                <button id="disputeBtn" type="button" class="btn btn-primary" onclick="DisputeRequest('<%- requestId  %>')">Dispute</button>
+              <% } %>
+
+              <% if ((uid == requestData.uid) && (requestData.StatusNumber != "9") && (requestData.StatusNumber != "8") && (requestData.StatusNumber != "4")){ %>
+                <button id="cancelBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="cancelRequestValidation('<%- requestId  %>')">Cancel</button>
+              <% } %>
+      </center>
+      <br><br>
+
+      <% if((requestData.StatusNumber == "5") && (requestData.uid == uid)) {%>
+
+      <div class="container" id="paypal-button-container"></div>
+
+    <script
+      src="https://www.paypal.com/sdk/js?client-id=Abp9ivE5Sm6HBI8k_0GXe0cX6rneDx6Pq_YQVrRsGSDImBaDVkZNNUwR4YqMf81zbqcdgyjHP07gaGUJ&currency=USD"> // Required. Replace SB_CLIENT_ID with your sandbox client ID.
+    </script>
+    <script>
+        paypal.Buttons({
+          createOrder: function(data, actions) {
+            // This function sets up the details of the transaction, including the amount and line item details.
+            console.log('<%- requestData.calculatedPrice %>');
+            return actions.order.create({
+              intent: "CAPTURE",
+              purchase_units: [{
+                items : [
+                  {
+                    name: "Printed Object",
+                    description: "The item(s) being printed by the printer",
+                    unit_amount : {
+                      currency_code: "USD",
+                      value: '<%- requestData.calculatedPrice %>'
+                    },
+                    quantity:'1'
+                  },
+                  {
+                    name: "Shipping and handling",
+                    description: "Fee to cover shipping and handling of the part",
+                    unit_amount : {
+                      currency_code: "USD",
+                      value: '1'
+                    },
+                    quantity:'1'
+                  }
+                ],
+                amount: {
+                  currency_code: "USD",
+                  value: '<%- (Number(requestData.calculatedPrice) + 1) %>',
+                  breakdown : {
+                    item_total:{
+                      currency_code: "USD",
+                      value: '<%- (Number(requestData.calculatedPrice) + 1) %>' 
+                    } 
+                  }
+                },
+                payee: {
+                    email_address: "<%- printerData.PayPalEmail %>"
+                },
+                payment_instruction: {
+                    disbursement_mode: "INSTANT"
+                }
+              }]
+            });
+          },
+          onApprove: function(data, actions) {
+
+            var printerID = "<%- requestData.claimedBy %>";
+            var requestId = "<%- requestId %>";
+            var payAmount = '<%- requestData.calculatedPrice %>';
+            var orderId = data.orderID;
+            var payerId = data.payerID;
+
+            return actions.order.capture().then(function(details) {
+              // This function shows a transaction success message to your buyer.
+              $.ajax({
+                statusCode: {
+                  500: function(data) {
+                    
+                    alert("ERROR recording payment, please contact an Admin");
+                    
+                  }
+                },
+                url: '/record_payment',
+                type: 'POST',
+                contentType: 'application/json',
+                processData: false,
+                data: JSON.stringify({details:details,printerID:printerID,requestId:requestId}),
+                success: function(data){
+                  location.reload();
+                }
+              });
+              alert('Transaction completed by ' + details.payer.name.given_name);
+            });   
+              
+          }
+        }).render('#paypal-button-container');
+        //This function displays Smart Payment Buttons on your web page.
+      </script>
+
+      <% } %>
+
+      <div style="width: 60%; margin:auto">
+      <h4>Add a comment:</h4>
+        <form name="commentForm" method="POST" action="/add_comment_to_request?requestId=<%- requestId  %>">
+          <div class="form-group">
+            <textarea class="form-control" rows="2" id="body_text" name="body_text" required></textarea>
+          </div>
+        
+          <button type="button" onclick="submitComment('<%- loggedIn  %>','<%- roles  %>','<%= JSON.stringify(requestData)  %>','<%- uid  %>')" class="btn btn-primary">Submit</button>
+        </form>
+        <br>
+      </div>
+      <br>
+      <div style="width:80%; margin:auto"><h4>Comments (<%- Object.keys(comments).length %>)</h4></div>
+      <hr style="width: 80%">
+        <% comments.forEach(function(comment) { %>
+          <% if (comment.data().uid == uid) { %>
+            <%- include('../partials/outgoing_comment', {comment : comment.data(), commentId : comment.id}); %>
+            <% } else if ((comment.data().uid != uid)){ %>
+              <%- include('../partials/incoming_comment', {comment : comment.data(), commentId : comment.id}); %>
+              <% } %>
+      <% }); %>
+      </div>
+    
+      <!-- Admin Approve Request Warning Modal -->
+  <div class="modal fade" id="approveRequestModal_<%- requestId  %>" tabindex="-1" role="dialog" aria-labelledby="approveRequestLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <center><h5 class="modal-title" id="approveRequestLabel">Are you sure you want to approve this request?</h5></center>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-footer">
+            <button id="modalApproveBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="approveRequest('<%- requestId  %>')" data-dismiss="modal">Approve</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+        <!-- Printer Approve Request Warning Modal -->
+  <div class="modal fade" id="printerApproveRequestModal_<%- requestId  %>" tabindex="-1" role="dialog" aria-labelledby="printerApproveRequestLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <center><h5 class="modal-title" id="printerApproveRequestLabel">Are you sure you want to approve this request?</h5></center>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button id="modalPrinterApproveBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="printerApproveRequest('<%- requestId  %>')" data-dismiss="modal">Approve</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+    <!-- Deny Request Warning Modal -->
+  <div class="modal fade" id="denyRequestModal_<%- requestId  %>" tabindex="-1" role="dialog" aria-labelledby="denyRequestLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <center><h5 class="modal-title" id="denyRequestLabel">Are you sure you want to deny this request?</h5></center>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button id="modalDenyBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="denyRequest('<%- requestId  %>')" data-dismiss="modal">Deny</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Claim Request Warning Modal -->
+  <div class="modal fade" id="claimRequestModal_<%- requestId  %>" tabindex="-1" role="dialog" aria-labelledby="claimRequestLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <center><h5 class="modal-title" id="claimRequestLabel">Are you sure you want to claim this request?</h5></center>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button id="modalClaimBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="claimRequest('<%- requestId  %>')" data-dismiss="modal">Claim</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Drop Request Warning Modal -->
+  <div class="modal fade" id="dropRequestModal_<%- requestId  %>" tabindex="-1" role="dialog" aria-labelledby="dropRequestLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <center><h5 class="modal-title" id="dropRequestLabel">Are you sure you want to drop this request?</h5></center>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button id="modalDropBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="dropRequest('<%- requestId  %>')" data-dismiss="modal">Drop</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Cancel Request Warning Modal -->
+  <div class="modal fade" id="cancelRequestModal_<%- requestId  %>" tabindex="-1" role="dialog" aria-labelledby="cancelRequestLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <center><h5 class="modal-title" id="cancelRequestLabel">Are you sure you want to cancel this request?</h5></center>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button id="modalCancelBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="cancelRequest('<%- requestId  %>')" data-dismiss="modal">Submit</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Flag Request Warning Modal -->
+  <div class="modal fade" id="flagRequestModal_<%- requestId  %>" tabindex="-1" role="dialog" aria-labelledby="flagRequestLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <center><h5 class="modal-title" id="flagRequestLabel">Why do you want to flag this request for review?</h5></center>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form id="flag_box" method="post" action="/flag_request?requestId=<%- requestId  %>">
+          <div class="modal-body">
+              <div class="form-group" style="margin:5px;">
+                <textarea class="form-control" rows="2" name="body_text" id="flag_request_body_text" placeholder="Explanation" required></textarea>
+              </div>
+          </div>
+        <div class="modal-footer">
+          <button id="modalFlagBtn_<%- requestId  %>" type="submit" class="btn btn-primary">Flag</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+      </div>
+    </div>
+  </div>
+  <!-- Post Comment Modal (Unauthorized) -->
+  <div class="modal fade" id="unauthorizedModal" tabindex="-1" role="dialog" aria-labelledby="unauthorizedLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <center><h5 class="modal-title" id="unauthorizedLabel">You are unauthorized to comment on this request.</h5></center>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </main>
+
+  <footer>
+      <%- include('../partials/footer'); %>
+  </footer>
+
+  </body>
+
+  </html>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js" type="text/javascript"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <script>
+      function approveRequestValidation(requestId) {
+          var modalId = "#approveRequestModal_" + requestId;
+          console.log(modalId);
+          $(modalId).modal("show");
+      }
+
+      function approveRequest(requestId) {
+          var approveBtnId = "approveBtn_" + requestId;
+          var approveBtn = document.getElementById(approveBtnId);
+          $.ajax({
+          statusCode: {
+            401: function(data){
+              window.location.href = "login"
+            }
+          },
+            url: '/approve_request',
+          type: 'POST',
+          contentType: 'application/json',
+          processData: false,
+          data: JSON.stringify({requestId:requestId}),
+          success: function(data){
+            console.log('save success');
+            approveBtn.classList.add("hide");
+            window.location.href = '/view_requests'
+              
+          }
+        }); 
+
+      }
+
+      function cancelRequest(requestId)
+      {
+          $.ajax({
+          statusCode: {
+            401: function(data){
+              window.location.href = "login"
+            },
+            500: function(data){
+              console.log("Error canceling request");
+            },
+          },
+            url: '/cancel_request',
+          type: 'POST',
+          contentType: 'application/json',
+          processData: false,
+          data: JSON.stringify({requestId:requestId}),
+          success: function(data){
+            window.location.href = '/my_requests'
+          }
+        }); 
+      }
+
+      function CompleteRequest(requestId)
+      {
+        $.ajax({
+          statusCode: {
+            401: function(data){
+              window.location.href = "login"
+            },
+            500: function(data){
+              console.log("Error completing request");
+            },
+          },
+            url: '/complete_request',
+          type: 'POST',
+          contentType: 'application/json',
+          processData: false,
+          data: JSON.stringify({requestId:requestId}),
+          success: function(data){
+            window.location.href = '/view_requests'
+          }
+        }); 
+      }
+
+      function DisputeRequest(requestId)
+      {
+        $.ajax({
+          statusCode: {
+            401: function(data){
+              window.location.href = "login"
+            },
+            500: function(data){
+              console.log("Error disputing request");
+            },
+          },
+            url: '/dispute_request',
+          type: 'POST',
+          contentType: 'application/json',
+          processData: false,
+          data: JSON.stringify({requestId:requestId}),
+          success: function(data){
+            window.location.href = '/my_requests'
+          }
+        }); 
+      }
+      
+      function cancelRequestValidation(requestId)
+      {
+        var modalId = "#cancelRequestModal_" + requestId;
+        console.log(modalId);
+        $(modalId).modal("show");
+      }
+
+
+      function denyRequestValidation(requestId) {
+          var modalId = "#denyRequestModal_" + requestId;
+          console.log(modalId);
+          $(modalId).modal("show");
+      }
+
+      function denyRequest(requestId) {
+          var denyBtnId = "denyBtn_" + requestId;
+          var denyBtn = document.getElementById(denyBtnId);
+          $.ajax({
+            statusCode: {
+            401: function(data){
+              window.location.href = "login"
+            }
+          },
+          url: '/deny_request',
+          type: 'POST',
+          contentType: 'application/json',
+          processData: false,
+          data: JSON.stringify({requestId:requestId}),
+          success: function(data){
+            console.log('save success');
+            denyBtn.innerHTML = "Denied";
+            window.location.href = '/view_requests'
+              
+          },
+          failure: function(data){
+            console.log("Failed")
+          }
+        }); 
+
+      }
+
+      function claimRequestValidation(requestId) {
+          var modalId = "#claimRequestModal_" + requestId;
+          console.log(modalId);
+          $(modalId).modal("show");
+      }
+
+      function claimRequest(requestId) {
+          var claimBtnId = "claimBtn_" + requestId;
+          var claimBtn = document.getElementById(claimBtnId);
+          $.ajax({
+          statusCode: {
+          401: function(data){
+            window.location.href = "login"
+            }
+          },
+          url: '/claim_request',
+          type: 'POST',
+          contentType: 'application/json',
+          processData: false,
+          data: JSON.stringify({requestId:requestId}),
+          success: function(data){
+            console.log('save success');
+            claimBtn.innerHTML = "Claimed";
+            window.location.href = '/view_requests'
+              
+          },
+          failure: function(data){
+            console.log("Failed")
+          }
+        }); 
+
+      }
+
+      function dropRequestValidation(requestId) {
+          var modalId = "#dropRequestModal_" + requestId;
+          console.log(modalId);
+          $(modalId).modal("show");
+      }
+      function dropRequest(requestId) {
+          console.log("success")
+          var dropBtnId = "dropBtn_" + requestId;
+          var dropBtn = document.getElementById(dropBtnId);
+          $.ajax({
+          statusCode: {
+            401: function(data){
+              window.location.href = "login"
+            }
+          },
+          url: '/drop_request',
+          type: 'POST',
+          contentType: 'application/json',
+          processData: false,
+          data: JSON.stringify({requestId:requestId}),
+          success: function(data){
+            console.log('save success');
+            dropBtn.innerHTML = "Dropped";
+            window.location.href = '/view_requests'
+              
+          },
+          failure: function(data){
+            console.log("Failed")
+          }
+        }); 
+
+      }
+
+      function flagRequestValidation(requestId) {
+          var modalId = "#flagRequestModal_" + requestId;
+          console.log(modalId);
+          $(modalId).modal("show");
+      }
+
+      function flagRequest(requestId) {
+        console.log("flag button clicked")
+        var flagBtnId = "flagBtn_" + requestId;
+        var flagBtn = document.getElementById(flagBtnId);
+        $.ajax({
+        statusCode: {
+          401: function(data){
+            window.location.href = "login"
+          }
+        },
+          url: '/flag_request',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({requestId:requestId}),
+        success: function(data){
+          console.log('save success');
+          flagBtn.innerHTML = "Flagged";
+          window.location.href = '/view_requests'
+            
+        },
+        failure: function(data){
+          console.log("Failed")
+        }
+      }); 
+
+      }
+
+      function printerApproveRequestValidation(requestId) {
+          var modalId = "#printerApproveRequestModal_" + requestId;
+          console.log(modalId);
+          $(modalId).modal("show");
+      }
+
+      function printerApproveRequest(requestId) {
+          var printerApproveBtnId = "printerApproveBtn_" + requestId;
+          var printerApproveBtn = document.getElementById(printerApproveBtnId);
+          $.ajax({
+          statusCode: {
+            401: function(data){
+              window.location.href = "login"
+            }
+          },
+            url: '/printer_approve_request',
+          type: 'POST',
+          contentType: 'application/json',
+          processData: false,
+          data: JSON.stringify({requestId:requestId}),
+          success: function(data){
+            console.log('save success');
+            printerApproveBtn.innerHTML = "Approved";
+            window.location.href = '/view_requests'
+              
+          },
+          failure: function(data){
+            console.log("Failed")
+          }
+        }); 
+
+      }
+
+      function submitComment(loggedIn, roles, requestData, uid){
+        var requestData = JSON.parse(requestData);
+        document.forms["commentForm"].submit();
+        // if (requestData.claimedBy){
+        //   // Makes sure that if the request has been claimed, only Admins, the requester, or the printer who claimed it can post a comment
+        //   if (loggedIn && (roles.includes("Admin") || (requestData.uid == uid) || requestData.claimedBy == uid)) {
+        //     document.forms["commentForm"].submit()
+        //   } else {
+        //     $("#unauthorizedModal").modal("show");
+        //   };
+        // } else if (!requestData.claimedBy && requestData.adminApproved){
+        //   // If the request is approved but not claimed, it should be visible to all Printers, Admins, and the requester
+        //   if (loggedIn == 'true' && (roles.includes("Admin") || (roles.includes("Printer")) || requestData.uid == uid)) {
+        //     console.log("Should be submitted")
+        //     document.forms["commentForm"].submit()
+        //   } else {
+        //     $("#unauthorizedModal").modal("show");
+        //   };
+        // } 
+      };
+
+      function changeSrc(fileLink){
+
+        var preview_element = document.getElementById('vs_iframe')
+        if(preview_element.style.display==="none"){
+          preview_element.style.display="block";
+        }
+        console.log(fileLink)
+        preview_element.src ="https://www.viewstl.com/?embedded&url="+ encodeURIComponent(fileLink) +"&rotation=yes&bgcolor=white&noborder=yes&orientation=front"
+
+        preview_element.contentWindow.postMessage({msg_type:'load', url:encodeURIComponent(fileLink)}, '*');
+    }
+
+  </script>

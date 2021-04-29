@@ -1,0 +1,77 @@
+
+<div class="feedCardContainer" style="display: block;">
+  <div class="card bg-light mb-3 h-100" style="width: 18rem;">
+    <%if (post.Image != undefined) { %>
+        <img class="card-img-top" style="max-width:100%;" src=<%= typeof post.Image.url != 'undefined' ? post.Image.url : 'imgsrc' %> alt="Card image cap">
+    <% } %>
+    <div class="card-body">
+      <h3 class="card-title" style="min-height: 50px;"><%= typeof post.title != 'undefined' ? post.title : 'title' %></h3>
+      <div style="height:4em;">
+        <h2 style="text-align: left;">
+        <%if ((post.tags!= undefined) && (post.tags.length >= 1)) { %>
+          <% post.tags.forEach(function(tag) { %>
+            <span class="badge rounded-pill bg-primary" style="color:white;font-weight: normal;margin-top:0px;margin-right:5px;margin-bottom:5px;padding:5px"><%= tag %></span>
+          <% }); %>
+            <br>
+          <% } %>
+        </h2>
+          <br>
+        </div>
+        <h4 class="card-text">User: <%= typeof post.userName != 'undefined' ? post.userName : 'username' %></h4>
+        <div style="display:flex;">
+          <button href="#" class="btn btn-primary" onclick="openPost('<%- commId  %>','<%- postId  %>')">View Post</a>
+          <% if (roles.includes('Admin')) { %>
+            <button href="#" class="btn btn-danger" onclick="deletePostWarning('<%- commId  %>','<%- postId  %>')" style="margin-left:10px">Delete Post</a>
+          <% } %>
+        </div>
+      
+    </div>
+    <% if (viewFlagged) { %>
+    <div class="card-footer"><button id="flaggedNotes" class="btn text-muted" onclick="openFlaggedNotes('<%- commId  %>','<%- postId  %>','<%- loggedIn  %>')">Why was this post flagged?</button></div>
+    <% } %>
+  </div>
+</div>
+
+<% if (roles.includes('Admin')) { %>
+<!-- Delete Post Warning Modal -->
+<div class="modal fade" id="deletePostModal_<%- postId  %>" tabindex="-1" role="dialog" aria-labelledby="deletePostLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <center><h5 class="modal-title" id="deletePostLabel">Are you sure you want to delete the following post? This action cannot be undone.</h5></center>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted"><i>User: <%= typeof post.userName != 'undefined' ? post.userName : 'username' %></i></p>
+        <p class="text-muted"><i>Post Title: <%= typeof post.title != 'undefined' ? post.title : 'title' %></i></p>
+        <p class="text-muted"><i>Post Content: <%= typeof post.body_text!= 'undefined' ? post.body_text : 'body' %></i></p>
+      </div>
+      <div class="modal-footer">
+        <button id="modalDeletePostBtn_<%- postId  %>" type="button" class="btn btn-primary" onclick="deletePost('<%- commId  %>','<%- postId  %>')" data-dismiss="modal">Delete</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- View Flagged Notes Modal -->
+<div class="modal fade" id="viewFlaggedNotesModal_<%- postId  %>" tabindex="-1" role="dialog" aria-labelledby="viewFlaggedNotesLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <center><h5 class="modal-title" id="viewFlaggedNotesLabel">Flagged Comments:</h5></center>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="FlaggedNotesModalBody_<%- postId  %>">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+<% } %>

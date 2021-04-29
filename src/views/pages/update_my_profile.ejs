@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body >
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+
+    <div class="container">
+        <h1>Update User Information</h1>
+        <form method="POST" action='/update_my_info'>
+            <div class="form-group">
+                <label for="readUid">UID</label>
+                <input type="text" class="form-control" id="readUid" name="uid" value=<%= typeof uid != 'undefined' ? uid : 'uid' %> readonly>
+            </div>
+            <div class="form-group">
+                <label for="inputUserName">Username</label>
+                <input type="text" class="form-control" id="inputUserName" name="userName" value=<%= typeof user.userName != 'undefined' ? user.userName : 'userName' %>readonly>
+            </div>
+              <div class="form-group">
+                <label for="inputFirstName">First Name</label>
+                <input type="text" class="form-control" id="inputFirstName" name="FirstName" placeholder="FirstName" value=<%= typeof user.FirstName != 'undefined' ? user.FirstName : 'FirstName' %>>
+            </div>
+            <div class="form-group">
+                <label for="inputLastName">Last Name</label>
+                <input type="text" class="form-control" id="inputLastName" name="LastName" placeholder="LastName" value=<%= typeof user.LastName != 'undefined' ? user.LastName : 'LastName' %>>
+            </div>
+            <div class="form-group">
+                <label for="inputEmail">Email</label>
+                <input type="text" class="form-control" id="inputEmail" name="email" placeholder="email" value=<%= typeof user.email != 'undefined' ? user.email : 'email' %>>
+            </div>
+            <div class="form-group">
+                <label for="inputZip">Zip Code</label>
+                <input type="text" class="form-control" id="inputZip" name="ZipCode" placeholder="zip" value=<%= typeof user.ZipCode != 'undefined' ? user.ZipCode : 'ZipCode' %>>
+            </div>
+
+            <% if (roles.includes("Printer")) { %>
+            <div class="form-group">
+                <label for="inputPayPalEmail">PayPal Email</label>
+                <input type="text" class="form-control" id="inputPayPalEmail" name="PayPalEmail" placeholder="PayPal Email" value=<%= typeof user.PayPalEmail != 'undefined' ? user.PayPalEmail : 'PayPalEmail' %>>
+            </div>
+            <% } %>
+            <button class="btn btn-primary" type="submit">Submit</button>
+            
+        </form>
+        <br>
+        <button class="btn btn-secondary" onclick="redirectToViewPage()">Cancel</button>
+    </div>
+    
+</main>
+
+<footer >
+    <%- include('../partials/footer'); %>
+</footer>
+
+<script>
+    function redirectToViewPage()
+    {
+        window.location.href = '/view_my_profile?uid=<%- uid %>';
+    }
+</script>
+</body>
+</html>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>

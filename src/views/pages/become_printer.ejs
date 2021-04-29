@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body>
+
+<header>
+    <%- include('../partials/header'); %>
+
+</header>
+
+<main>
+    <h1>Become a Printer</h1>
+    <div class="container">
+        <p>
+            As a Printer, you will have access to additional navigation bar items that will allow you to accept print requests. While using these features, 
+            you will be expected to:
+        </p>
+
+        <ul>
+            <li>Follow through with the requests you claim</li>
+            <li>Utilize the request chat room when needed</li>
+            <li>Not scam other users</li>
+            <li>Cooperate with PrintAPart admin users</li>
+        </ul>
+        
+        <p>
+            Please enter your PayPal email below. After submitting this form, you may change your PayPal Email account information any time on your Account page.
+            You must connect your paypal email to the partner platform using the link below, or payments to your paypal account will not process properly.
+        </p>
+
+        <div dir="ltr" style="text-align: left;" trbidi="on">
+            <script>
+              (function(d, s, id) {
+                var js, ref = d.getElementsByTagName(s)[0];
+                if (!d.getElementById(id)) {
+                  js = d.createElement(s);
+                  js.id = id;
+                  js.async = true;
+                  js.src = "https://www.paypal.com/webapps/merchantboarding/js/lib/lightbox/partner.js";
+                  ref.parentNode.insertBefore(js, ref);
+                }
+              }(document, "script", "paypal-js"));
+          
+            </script>
+            <a data-paypal-button="true" href="<%- onboardLink %>&displayMode=minibrowser" target="PPFrame">Sign up for PayPal</a>
+          </div>
+
+        <form action="/add_printer_form" method="POST">
+            <input type="email" class="form-control" placeholder="PayPal Email" required="true" name="paypal_email">
+            <p id="emailHelp" class="form-text text-muted", style="font-size: 12px;">We'll never share your email with anyone else.</small>
+            <input type="hidden" value='<%- uid %>' name="uid"></input>
+            <br>
+            <br>
+
+            <input name="user_comment" class="form-control" placeholder="Comment (optional)"></input>
+
+            <p class='text-center' style="padding-top: 8px;">Submitted forms are reviewed by website admins for approval. Expect a short delay before gaining access to Printer features.</p>
+
+            <p class="fine-print text-center" style="font-size: 12px;">By clicking Submit, you agree to our Terms and that you have read our Data Policy including our Cookie Use.</div>
+
+            <div class="submit-button-wrapper text-center">
+                <button class="btn btn-primary">Submit</button>
+            </div>
+        </form>
+
+    </div>
+
+</main>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+
+</body>
+</html>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>

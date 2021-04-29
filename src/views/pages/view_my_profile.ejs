@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body >
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+    <nav class="navbar navbar-expand-sm navbar-light bg-light" style="margin-top: 15px;">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                <% if (roles.includes("Requester")) { %>
+                    <li class="nav-item">
+                        <div class="btn btn-outline-primary" onclick="directToMyRequests()">View My Requests</div>
+                    </li>
+                <% } %>
+                <% if (!roles.includes("Printer") && (!formExists) && (!permanentlyRejected)) { %>
+                    <li class="nav-item">
+                        <div class="btn btn-outline-primary" onclick="directToNewPrinterForm()">Become A Printer</div>
+                    </li>
+                <% } else if (formExists) { %>
+                    <li class="nav-item">
+                        <div class="btn btn-primary disabled">Printer Form Submitted</div>
+                    </li>
+                <% } %>
+                <% if (roles.includes("Printer")) { %>
+                    <li class="nav-item">
+                        <div class="btn btn-outline-primary" onclick="navToMyClaims()">My Claims</div>
+                    </li>
+                <% } %>
+                <% if (roles.includes("Admin")) { %>
+                    <li class="nav-item">
+                        <div class="btn btn-outline-primary" onclick="directToViewBecomePrinterForms()">View 'Become Printer' Forms</div>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-auto">
+                <h1>User Information</h1>
+                <p><span class="lead">UID:</span> <span><%- typeof uid != 'undefined' ? uid : 'uid' %></span></p>
+                <p><span class="lead">UserName:</span> <span><%- typeof user.userName != 'undefined' ? user.userName : 'userName' %></span></p>
+                <p><span class="lead">First Name:</span> <span><%- typeof user.FirstName != 'undefined' ? user.FirstName : 'FirstName' %></span></p>
+                <p><span class="lead">Last Name:</span> <span><%- typeof user.LastName != 'undefined' ? user.LastName : 'LastName' %></span></p>
+                <p><span class="lead">Zip Code:</span> <span><%- typeof user.ZipCode != 'undefined' ? user.ZipCode : 'ZipCode' %></span></p>
+                <p><span class="lead">Email:</span> <span><%- typeof user.email != 'undefined' ? user.email : 'email' %></span></p>
+                <% if (roles.includes("Printer")) { %>
+                    <p><span class="lead">PayPal Email:</span> <span><%- typeof user.PayPalEmail != 'undefined' ? user.PayPalEmail : 'PayPalEmail' %></span></p>
+                <% } %>
+                <p><span class="lead">Roles: </span><span>
+                    <% for(var i=0; i<user.Roles.length; i++) {%>
+                        <%- user.Roles[i] %> 
+                    <% } %>
+                </span></p>
+
+                <button class="btn btn-primary" onclick="redirectToEdit()">Edit</button>
+            </div>
+            <div class="col-sm">
+            </div>
+            <div class="col-sm">
+                <h4>Profile Image</h4>
+                <div style="width:auto; text-align:center; padding:20px;">
+                    <img style="max-width:100%; height:auto;" src=<%= typeof user.profileImage != 'undefined' ? user.profileImage : 'imgsrc' %> alt="Profile Image">
+                </div>
+
+                <div class="form-group" style="width: 55%;">
+                    <p>Update your picture</p>
+                    <input type="file" style="display: none;"  id="userProfileImg" >
+                    <input type="button" class="form-control-file" value="Browse..." onclick="document.getElementById('userProfileImg').click();" />
+                    <progress id="profileUploaderBar" class="d-none" max="100"></progress>
+                </div>
+
+                <% if(favorites.length > 0) { %>
+                        <h3 style="padding-top: 50px;">Favorite Communities</h3>
+                    <% favorites.forEach(function(fav) { %>
+                        <p style="margin-bottom: 15px;"><%- fav.name %>
+                        <button class="btn btn-sm btn-outline-danger" onclick="removeFav('<%- fav.id %>')">Remove</button></p>
+                        <% }); %>
+                <% } %>
+            </div>
+            </div>
+        </div>
+
+        
+    </div>
+    
+</main>
+
+<footer >
+    <%- include('../partials/footer'); %>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script src="https://www.gstatic.com/firebasejs/3.7.4/firebase.js"></script>
+<script>
+
+    // Initialize Firebase
+    var config = {
+      storageBucket: "gs://printapart-d7319.appspot.com"
+    };
+    firebase.initializeApp(config);
+
+    var profileImgBtn = document.getElementById('userProfileImg');
+    profileImgBtn.addEventListener('change', async function(e){
+
+      var file = e.target.files[0];
+
+        if(file == undefined)
+        {
+            return;
+        }
+
+        await uploadImg();
+    });
+
+    function removeFav(favId)
+    {
+        $.ajax({
+        url: '/remove_community_favorite',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({commId: favId}),
+        success: function(data){
+            location.reload();
+        }
+      })      
+    }
+
+    function redirectToEdit()
+    {
+        window.location.href = '/update_my_profile?uid=<%- uid %>';
+    }
+
+    function directToNewPrinterForm()
+    {
+        window.location.href = '/become_printer?uid=<%- uid %>';
+	}
+	
+    function navToMyClaims(){
+        window.location.href = '/my_claims';
+    }
+
+    function directToMyRequests(){
+        window.location.href = '/my_requests';
+    }
+
+    function directToViewBecomePrinterForms(){
+        window.location.href = '/view_become_printer_forms';
+    }
+
+    // This function 
+    async function uploadImg(){
+
+        var progressObj = document.getElementById('profileUploaderBar');
+        if(progressObj.classList.contains("d-none"))
+        {
+            progressObj.classList.remove("d-none");
+        }
+        var fileBtn = document.getElementById('userProfileImg');
+        var file = fileBtn.files[0];
+
+        var date = new Date();
+        var time = Math.round(date.getTime() / 1000);
+        var storageRef = firebase.storage().ref("profile_images/<%- uid %>_" + time +"_"+ file.name);
+
+        var task = storageRef.put(file);
+
+        task.on('state_changed', 
+        function progress(snapshot) {
+            var percentage = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
+            progressObj.value = percentage;
+
+        }, 
+        function error(err) {
+            
+        });
+
+        await task;
+        var url = await storageRef.getDownloadURL();
+        SaveNewImage(url);
+
+    }
+
+    function SaveNewImage(imgLink){
+
+        var uid = '<%- uid %>';
+
+        $.ajax({
+        url: '/update_user_image',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({uid:uid, updatedImage: imgLink}),
+        success: function(data){
+            location.reload();
+        }
+      })      
+    }
+</script>
+
+</body>
+</html>

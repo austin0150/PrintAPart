@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+<main>
+
+    <div class="container">
+        <h1>Welcome to User Management</h1>
+        
+        <table class="table">
+            <thead>
+              <tr>
+                <th scope="col"><input type="checkbox" onClick="toggle(this); toggleActionsDisabled()" /></th>
+                <th scope="col">UID</th>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">Username</th>
+                <th scope="col">Email</th>
+                <th scope="col">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Actions
+                        </button>
+                        <div class="dropdown-menu">
+                            <button type="button" class="dropdown-item disabled" id="modUserBtn" onclick="navToModUser()">Modify User Info</button>
+                            <button type="button" class="dropdown-item disabled" data-toggle="modal" data-target="#rolesModal" onclick="setRolesBtnActive()" id="modRolesBtn">Modify Roles</button>
+                            <button type="button" class="dropdown-item disabled" onclick="ResetUserPasswords()" id="resetPassBtn">Reset Password</button>
+                            <div class="dropdown-divider"></div>
+                            <button type="button" class="dropdown-item disabled" id="deleteUserBtn" onclick="DeleteUsers()" >Delete User</button>
+                        </div>
+                    </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+                <% users.forEach(function(user) { %>
+                    <tr>
+                        <td><input type="checkbox" name="userCheck" onclick="toggleActionsDisabled()" id='<%- user.id  %>'/></td>
+                        <td><%= user.id %></td>
+                        <td><%= user.data().FirstName %></td>
+                        <td><%= user.data().LastName %></td>
+                        <td><%= user.data().userName %></td>
+                        <td><%= user.data().email %></td>
+                    </tr>
+                <% }); %>    
+            </tbody>
+          </table>
+    </div>
+    
+    <div class="modal fade" id="rolesModal" tabindex="-1" role="dialog" aria-labelledby="rolesModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="rolesModalLabel">User Roles</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <ul class="list-group">
+                    <button type="button" class="list-group-item list-group-item-action" id="mdlBlogger" onclick="toggleActive('mdlBlogger')">Blogger</button>
+                    <button type="button" class="list-group-item list-group-item-action" id="mdlRequester" onclick="toggleActive('mdlRequester')">Requester</button>
+                    <button type="button" class="list-group-item list-group-item-action" id="mdlPrinter" onclick="toggleActive('mdlPrinter')">Printer</button>
+                    <button type="button" class="list-group-item list-group-item-action" id="mdlAdmin" onclick="toggleActive('mdlAdmin')">Admin</button>
+                  </ul>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" onclick="saveNewRoles()" data-dismiss="modal" data-toggle="modal" data-target="#resultModal">Save Roles</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+  <div class="modal" tabindex="-1" id="resultModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Update Result</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>User Roles Updated</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer >
+    <%- include('../partials/footer'); %>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script>
+  option = {};
+
+    $('#rolesModal').on('show.bs.modal', function (event) {
+        
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var recipient = button.data('whatever') // Extract info from data-* attributes
+        // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+
+        var modal = $(this)
+    });
+    $('#resultModal').on('show.bs.modal', function (event) {
+        
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+
+        var modal = $(this)
+    })
+
+    function toggle(source) {
+        checkboxes = document.getElementsByName('userCheck');
+        for(var i=0, n=checkboxes.length;i<n;i++) {
+            checkboxes[i].checked = source.checked;
+        }
+    }
+
+    function toggleActionsDisabled(){
+        checkboxes = document.getElementsByName('userCheck');
+        var checkCount = 0;
+        var modUserInfoBtn = document.getElementById('modUserBtn');
+        var modUserRolesBtn = document.getElementById('modRolesBtn');
+        var resetUserPassBtn = document.getElementById('resetPassBtn');
+        var deleteUserBtn = document.getElementById('deleteUserBtn');
+
+        for(var i=0, n=checkboxes.length;i<n;i++) {
+            if(checkboxes[i].checked){
+                checkCount++;
+            }
+            if(checkCount == 2)
+            {
+                modUserInfoBtn.classList.add("disabled");
+                modUserRolesBtn.classList.add("disabled");
+                resetUserPassBtn.classList.remove("disabled");
+                deleteUserBtn.classList.remove("disabled");
+            }
+        }
+        if(checkCount == 1)
+        {
+            modUserInfoBtn.classList.remove("disabled");
+            modUserRolesBtn.classList.remove("disabled");
+            resetUserPassBtn.classList.remove("disabled");
+                deleteUserBtn.classList.remove("disabled");
+        }
+        if(checkCount == 0)
+        {
+            modUserInfoBtn.classList.add("disabled");
+            modUserRolesBtn.classList.add("disabled");
+            resetUserPassBtn.classList.add("disabled");
+            deleteUserBtn.classList.add("disabled");
+        }
+    }
+
+    function setRolesBtnActive(){
+        var uid;
+        var roles;
+        checkboxes = document.getElementsByName('userCheck');
+        for(var i=0, n=checkboxes.length;i<n;i++) {
+            if(checkboxes[i].checked){
+                uid = checkboxes[i].id;
+            }
+        }
+
+
+        $.ajax({
+        url: '/get_user_roles',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({userUid: uid}),
+        success: function(data){
+          roles =data.roles;
+          
+          console.log(roles);
+          var bloggerMdlBtn = document.getElementById("mdlBlogger");
+          var requesterMdlBtn = document.getElementById("mdlRequester");
+          var printerMdlBtn = document.getElementById("mdlPrinter");
+          var adminMdlBtn = document.getElementById("mdlAdmin");
+
+          bloggerMdlBtn.classList.remove("active");
+          requesterMdlBtn.classList.remove("active");
+          printerMdlBtn.classList.remove("active");
+          adminMdlBtn.classList.remove("active");
+
+          if(roles.includes("Blogger"))
+          {
+            bloggerMdlBtn.classList.add("active");
+          }
+          if(roles.includes("Requester"))
+          {
+            requesterMdlBtn.classList.add("active");
+          }
+          if(roles.includes("Printer"))
+          {
+            printerMdlBtn.classList.add("active");
+          }
+          if(roles.includes("Admin"))
+          {
+            adminMdlBtn.classList.add("active");
+          }
+        }
+      })
+    }
+
+    function toggleActive(id){
+        var obj = document.getElementById(id);
+        if(obj.classList.contains("active"))
+        {
+            obj.classList.remove("active");
+        }
+        else{
+            obj.classList.add("active");
+        }
+    }
+
+    function saveNewRoles(){
+      var uid;
+      checkboxes = document.getElementsByName('userCheck');
+      for(var i=0, n=checkboxes.length;i<n;i++) {
+          if(checkboxes[i].checked){
+              uid = checkboxes[i].id;
+          }
+      }
+
+      roles = [];
+
+      var bloggerMdlBtn = document.getElementById("mdlBlogger");
+      var requesterMdlBtn = document.getElementById("mdlRequester");
+      var printerMdlBtn = document.getElementById("mdlPrinter");
+      var adminMdlBtn = document.getElementById("mdlAdmin");
+
+      if(bloggerMdlBtn.classList.contains("active"))
+      {
+        roles.push('Blogger');
+      }
+      if(requesterMdlBtn.classList.contains("active"))
+      {
+        roles.push('Requester');
+      }
+      if(printerMdlBtn.classList.contains("active"))
+      {
+        roles.push('Printer');
+        ///addPrinterZip(uid);
+      }
+      //else{
+        //removePrinterZip(uid);
+      //}
+      if(adminMdlBtn.classList.contains("active"))
+      {
+        roles.push('Admin');
+      }
+
+      $.ajax({
+        url: '/update_user_roles',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({uid:uid, roles: roles}),
+        success: function(data){
+
+        },
+        failure: function(data){
+
+        }
+      })      
+
+    }
+
+    function navToModUser(){
+      var uid;
+      checkboxes = document.getElementsByName('userCheck');
+      for(var i=0, n=checkboxes.length;i<n;i++) {
+          if(checkboxes[i].checked){
+              uid = checkboxes[i].id;
+          }
+      }
+
+      window.location.href = '/modify_user_profile?uid=' + uid;
+
+      
+    }
+
+    function addPrinterZip(uid){
+        $.ajax({
+        url: '/add_printer_zip',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({printerUid: uid}),
+        success: function(data){
+        }
+      });
+    }
+
+    function removePrinterZip(uid){
+        $.ajax({
+        url: '/remove_printer_zip',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({printerUid: uid}),
+        success: function(data){
+        }
+      });
+    }
+
+    function DeleteUsers()
+    {
+      var uids =[];
+      var roles;
+      checkboxes = document.getElementsByName('userCheck');
+      for(var i=0, n=checkboxes.length;i<n;i++) {
+          if(checkboxes[i].checked){
+              uids.push(checkboxes[i].id);
+          }
+      }
+
+      $.ajax({
+      statusCode: {
+            500: function(data) {
+              
+              alert("ERROR Deleting users");
+              
+            }
+          },
+        url: '/delete_users',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({uids: uids}),
+        success: function(data){
+          location.reload();
+        }
+      });
+    }
+
+    function ResetUserPasswords(){
+      var uids =[];
+      var roles;
+      checkboxes = document.getElementsByName('userCheck');
+      for(var i=0, n=checkboxes.length;i<n;i++) {
+          if(checkboxes[i].checked){
+              uids.push(checkboxes[i].id);
+          }
+      }
+
+
+      console.log(uids);
+      initSendResetEmails(uids);
+    }
+    
+</script>
+
+
+<script>
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  var firebaseConfig = {
+    apiKey: "AIzaSyCjkXJHygS1mn0xyUQdKfKJqtvk8eLqYBE",
+    authDomain: "printapart-d7319.firebaseapp.com",
+    databaseURL: "https://printapart-d7319.firebaseio.com",
+    projectId: "printapart-d7319",
+    storageBucket: "printapart-d7319.appspot.com",
+    messagingSenderId: "487669702254",
+    appId: "1:487669702254:web:dbcef417065b328943507f",
+    measurementId: "G-ZQXSS5NZ61"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+</script>
+<script>
+
+  function initSendResetEmails(uids){
+        $.ajax({
+        statusCode: {
+              500: function(data) {
+                
+                alert("ERROR getting user info");
+                
+              }
+            },
+          url: '/get_user_data',
+          type: 'POST',
+          contentType: 'application/json',
+          processData: false,
+          data: JSON.stringify({uids: uids}),
+          success: function(data){
+            emails = data.emails;
+            sendResetEmails(emails);
+          }
+        });
+
+  }
+
+  async function sendResetEmails(emails)
+  {
+    var errorSet = false;
+    var auth = firebase.auth();
+    await Promise.all(emails.map(async (email) => {
+      try{
+        await auth.sendPasswordResetEmail(email);
+        console.log("sent reset email:" + email);
+      }
+      catch(error){
+          alert("Error attempting to send email");
+          console.log(error);
+          errorSet = true;
+      }
+    }));
+
+    if(errorSet){
+      alert("Error sending password reset emails");
+    }
+    else{
+      alert("Password reset email(s) sent");
+    }
+  }
+
+  function returnToLogin(){
+      window.location.href = '/login';
+  }
+</script>
+
+
+
+</body>
+</html>

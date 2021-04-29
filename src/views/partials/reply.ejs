@@ -1,0 +1,125 @@
+<div class="card" style="margin-left:50px;margin-top:10px;margin-bottom:10px;margin-right:10px;">
+    <div class="card-body">
+        <h6 class="card-text"><b><%= typeof reply.FirstName != 'undefined' ? reply.FirstName : 'User' %> 
+          <%= typeof reply.LastName != 'undefined' ? reply.LastName.charAt(0) : '' %> 
+          <% if (reply.uid == uid) { %>
+            (You)
+            <% } %></b> 
+          <% var date = comment.commentDate.toDate() %>
+          <% var month = date.getMonth() + 1 %>
+          <% var day = date.getDate() %>
+          <% var year = date.getFullYear() %>
+          <% var date = month + '/' + day + '/' + year %>
+          <%= date %></h6>
+          <div class="test_comment">
+        <% if (reply.accessible == "yes") { %>
+          <div class="card-text" id="comment_<%- replyId  %>"><%- typeof reply.body_text != 'undefined' ? reply.body_text : 'Comment Text' %></div>
+          <% } else { %>
+            <div class="card-text text-muted" id="comment_<%- replyId  %>"><i>This comment is no longer available.</i></div>
+          <% } %>
+        </div>
+      <div style="display:flex">
+        <% if ((loggedIn) && (likedCommentIds.includes(replyId))) { %>
+          <small><button id="like_btn_<%- replyId  %>" class="btn btn-sm" style="margin-top:2px;margin-bottom:2px;margin-right:10px;color:rgb(0, 132, 255)" onclick="likeComment('<%- loggedIn  %>','<%- commId  %>','<%- postId  %>','<%- replyId  %>', '<%- uid  %>')">Like (<font id="num_likes_<%- replyId  %>"><%- reply.numLikes  %></font>)</button></small>
+          <% } else if (loggedIn && !(likedCommentIds.includes(replyId))) { %>
+            <small><button id="like_btn_<%- replyId  %>" class="btn btn-sm text-muted" style="margin-top:2px;margin-bottom:2px;margin-right:10px;color:gray" onclick="likeComment('<%- loggedIn  %>','<%- commId  %>','<%- postId  %>','<%- replyId  %>', '<%- uid  %>')">Like (<font id="num_likes_<%- replyId  %>"><%- reply.numLikes  %></font>)</button></small>
+            <% } else { %>
+              <small><button id="like_btn_<%- replyId  %>" class="btn btn-sm text-muted" style="margin-top:2px;margin-bottom:2px;margin-right:10px;color:gray" onclick="likeComment('<%- loggedIn  %>','<%- commId  %>','<%- postId  %>','<%- replyId  %>', '<%- uid  %>')">Like (<font id="num_likes_<%- replyId  %>"><%- reply.numLikes  %></font>)</button></small>
+              <% } %>
+          <small><button id="<%- replyId  %>" name="replyToComment" onclick="reply2('<%- postId  %>','<%- replyId  %>','<%- roles  %>','<%- loggedIn  %>')" class="btn btn-sm text-muted" style="margin-top:2px;margin-bottom:2px;margin-right:10px;margin-left: 10px;">Reply</button></small>
+          <small><button id="viewRepliesBtn_<%- replyId  %>" onclick="viewReplies('<%- replyId  %>','<%- reply.numReplies  %>')" class="btn btn-sm text-muted" style="margin-top:2px;margin-bottom:2px;margin-right:10px;margin-left: 10px;float:right;">View replies (<%= reply.numReplies %>)</button></small>
+        </div>
+
+    <!-- Create the editor container -->
+<div id="reply_box_<%- replyId  %>" class="hide">
+  <div id="commentEditor_<%- replyId  %>">
+  </div>
+  <form id="quillCommentForm_<%- replyId  %>" method="POST" action="/add_reply?commId=<%- commId  %>&postId=<%- postId  %>&replyTo=<%- replyId  %>&filter=<%- filter %>">
+  <input type="hidden" name="body_text" id="quillHTML_<%- replyId  %>">
+  </form>
+  <p style="color:red;" class="hide" id='validation_<%- replyId  %>'>Please enter a comment.</p>
+  <div style="display:flex">
+    <small><button type="button" class="btn btn-outline-primary btn-sm" style="float:right; margin:5px;" onclick="quillReplySubmit('<%- loggedIn  %>','<%- roles  %>','<%- replyId %>')">Reply</button></small>
+  <small><button type="button" class="btn btn-outline-danger btn-sm" style="float:right; margin:5px;" onclick="cancel('<%- replyId  %>')">Cancel</button></small>
+  </div>
+  </div>
+  
+  <!-- Initialize Quill editor -->
+  <script>
+    var currentEditor;
+    var commentEditorId = '#commentEditor_' + "<%- replyId %>"
+    editors[commentEditorId] = new Quill(commentEditorId, {theme: 'snow',
+                                  modules: {toolbar: toolbarOptions}});
+    // set custom image handler
+    if (editors.commentEditorId){
+      editors.commentEditorId.getModule('toolbar').addHandler('image', () => {
+      selectLocalImage(editors.commentEditorId);
+});  
+    }                            
+  </script>
+
+    </div>
+
+    <% if (roles.includes('Admin')) { %>
+      <div class="card-footer">
+        <% if (reply.accessible == "yes") { %>
+        <small><button id="hide_<%- replyId  %>" class="btn btn-sm btn-danger" style="float:right;margin:0px" onclick="restrictComment('<%- commId  %>','<%- postId  %>','<%- replyId  %>')">Hide</button></small>
+        <% } else { %>
+          <small><button id="hide_<%- replyId  %>" class="btn btn-sm btn-danger" style="float:right;margin:0px" onclick="restrictComment('<%- commId  %>','<%- postId  %>','<%- replyId  %>')">Show</button></small>
+          <% } %>
+        </div>
+      <% } %>
+</div>
+  <div id="replies_<%- replyId  %>" class="hide" style="margin-left:50px;margin-top:10px;margin-bottom:10px;margin-right:10px;">
+    <% comments.forEach(function(reply) { %>
+      <% if (reply.data().replyTo == replyId) { %>
+        <%- include('../partials/reply', {reply : reply.data(), replyId : reply.id, postId : postId}); %>
+      <% } %>
+  <% }); %>
+  </div>
+<!-- Hide Reply Warning Modal -->
+<div class="modal fade" id="hideCommentModal_<%- replyId  %>" tabindex="-1" role="dialog" aria-labelledby="hideCommentLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <center><h5 class="modal-title" id="hideCommentLabel">This action will hide the contents of this comment from the public.</h5></center>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to hide this comment:</p>
+        <div class="test_comment">
+        <p class="text-muted"><i><%- reply.body_text %></i></p>
+      </div>
+      </div>
+      <div class="modal-footer">
+        <button id="modalHideBtn_<%- replyId  %>" type="button" class="btn btn-primary" onclick="processRestriction('<%- commId  %>','<%- postId  %>','<% reply.body_text  %>','<%- replyId  %>')" data-dismiss="modal">Hide</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Show Reply Warning Modal -->
+<div class="modal fade" id="showCommentModal_<%- replyId  %>" tabindex="-1" role="dialog" aria-labelledby="showCommentLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <center><h5 class="modal-title" id="showCommentLabel">This action will reveal the contents of this comment to the public.</h5></center>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to show this comment:</p>
+        <div class="test_comment">
+        <p class="text-muted"><i><%- reply.body_text %></i></p>
+      </div>
+      </div>
+      <div class="modal-footer">
+        <button id="modalShowBtn_<%- replyId  %>" type="button" class="btn btn-primary" onclick="processRestriction('<%- commId  %>','<%- postId  %>','<% reply.body_text  %>','<%- replyId  %>')" data-dismiss="modal">Show</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>

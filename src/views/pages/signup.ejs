@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <%- include('../partials/head'); %>
+</head>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<body>
+  <main>
+    <div class="container">
+    
+        <h1>Join PrintAPart!</h1>
+          <center>
+          <div class="form-group" style="width: 50%;">
+              <input type="email" class="form-control" id="newUserEmail" placeholder="Email" required="true">
+          </div>
+          <div class="form-group" style="width: 50%;">
+              <input type="password" class="form-control" id="newUserPass" placeholder="Password" required="true">
+          </div>
+          <br>
+        <div class="btn btn-primary" onclick="TrySignUp()">Submit</div>
+      </center>
+    </div>
+  </main>
+
+
+  <script>
+    function TrySignUp(){
+
+        var email = document.getElementById("newUserEmail").value;
+        var password = document.getElementById("newUserPass").value;
+
+        if(email == "" || password == "")
+        {
+          alert("You must enter an email and password");
+          return;
+        }
+
+      $.ajax({
+        statusCode: {
+          500: function(data) {
+            
+            if(data.responseText == "auth/email-already-in-use")
+            {
+              alert("Email is already in use");
+            }
+            else{
+              window.location.href = "/error?errorCode="+data.responseText;
+            }
+          }
+        },
+        url: '/add_auth',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({
+          email: email,
+          password:password  
+        }),
+        success: function(data){
+          addUser(data.uid, email);
+        }
+      });
+
+      
+    }
+
+    function addUser(uid, email)
+    {
+      $.ajax({
+        url: '/add_post_signup',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({
+        email: email,
+        uid:uid 
+        }),
+        success: function(data){
+          window.location.href = "/new_user?email="+email+"&uid=" + uid;
+        }
+      });
+    }
+
+  </script>
+</body>
+
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+</html>

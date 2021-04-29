@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+
+    <% if (roles.includes('Printer')) { %>
+    <button type="button" class="btn btn-outline-primary" style="margin:10px;" onclick="navToMyClaims()">My Claims</button>
+    <br>
+    <% } %>
+    <center>
+    <h1 style="padding: 20px;">Printing Requests</h1>
+    </center>
+
+    <% if (roles.includes('Admin')) { %>
+<center><div class="btn-group" role="group" aria-label="Basic example">
+    <button id='approvedBtn' type="button" class="btn btn-secondary" onclick="showApprovedRequests()" aria-pressed="true">Approved</button>
+    <button id="unapprovedBtn" type="button" class="btn btn-secondary" onclick="showUnapprovedRequests()">Unapproved</button>
+    <button id="claimedBtn" type="button" class="btn btn-secondary" onclick="showClaimedRequests()">Claimed</button>
+    <button id="deniedBtn" type="button" class="btn btn-secondary" onclick="showDeniedRequests()">Denied</button>
+    <button id="awaitPaymentBtn" type="button" class="btn btn-secondary" onclick="showAwaitingPaymentRequests()">Awaiting Payment</button>
+    <button id="InProgressBtn" type="button" class="btn btn-secondary" onclick="showInProgressRequests()">In Progress</button>
+    <button id="DisputedBtn" type="button" class="btn btn-secondary" onclick="showDisputedRequests()">Disputed</button>
+    <button id="CompletedBtn" type="button" class="btn btn-secondary" onclick="showCompletedRequets()">Completed</button>
+    <button id="CancelledBtn" type="button" class="btn btn-secondary" onclick="showCancelledRequest()">Cancelled</button>
+  </div></center>
+  <% } %>
+<div style="margin:auto; width:60%">
+    <% requests.forEach(function(request) { %>
+        <%- include('../partials/request_tile', {request : request.data(), requestId : request.id}); %>
+        <% }); %>   
+    </div>
+    
+
+</main>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+
+</body>
+</html>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js" type="text/javascript"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script>
+
+    var statusNum = '<%- StatusNumber %>'
+    if(statusNum == "1"){
+        document.getElementById("unapprovedBtn").classList.add("active");
+    }
+    else if (statusNum == "2"){
+        document.getElementById("approvedBtn").classList.add("active");
+    }
+    else if (statusNum == "3"){
+        document.getElementById("claimedBtn").classList.add("active");
+    }
+    else if (statusNum == "4"){
+        document.getElementById("deniedBtn").classList.add("active");
+    }
+    else if (statusNum == "5"){
+        document.getElementById("awaitPaymentBtn").classList.add("active");
+    }
+    else if (statusNum == "6"){
+        document.getElementById("InProgressBtn").classList.add("active");
+    }
+    else if (statusNum == "7"){
+        document.getElementById("DisputedBtn").classList.add("active");
+    }
+    else if (statusNum == "8"){
+        document.getElementById("CompletedBtn").classList.add("active");
+    }
+    else if (statusNum == "9"){
+        document.getElementById("CancelledBtn").classList.add("active");
+    }
+
+    function openRequest(requestId)
+    {
+        window.location.href = '/request?requestId='+requestId;
+    }
+
+    function showUnapprovedRequests() {
+        window.location.href = '/view_requests?StatusNumber=1';
+    }
+
+    function showApprovedRequests() {
+        window.location.href = '/view_requests?StatusNumber=2';
+    }
+
+    function showClaimedRequests() {
+        window.location.href = '/view_requests?StatusNumber=3';
+    }
+
+    function showDeniedRequests(){
+        window.location.href = '/view_requests?StatusNumber=4';
+    }
+
+    function showAwaitingPaymentRequests(){
+        window.location.href = '/view_requests?StatusNumber=5';
+    }
+
+    function showInProgressRequests(){
+        window.location.href = '/view_requests?StatusNumber=6';
+    }
+
+    function showDisputedRequests(){
+        window.location.href = '/view_requests?StatusNumber=7';
+    }
+
+    function showCompletedRequets(){
+        window.location.href = '/view_requests?StatusNumber=8';
+    }
+
+    function showCancelledRequest(){
+        window.location.href = '/view_requests?StatusNumber=9';
+    }
+    
+    function approveRequestValidation(requestId) {
+        var modalId = "#approveRequestModal_" + requestId;
+        console.log(modalId);
+        $(modalId).modal("show");
+    }
+
+    function approveRequest(requestId) {
+        var divId = "request_" + requestId;
+        var request = document.getElementById(divId);
+        var approveBtnId = "approveBtn_" + requestId;
+        var approveBtn = document.getElementById(approveBtnId);
+        console.log(approveBtn)
+        $.ajax({
+        url: '/approve_request',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({requestId:requestId}),
+        success: function(data){
+          console.log('save success');
+          request.setAttribute("class", "hide");
+          request.setAttribute("name", "approved");
+          approveBtn.classList.add("hide");
+          // Make sure buttons disappear when moving to other page  
+        }
+      }); 
+
+    }
+    
+
+    function navToMyClaims(){
+        window.location.href = '/my_claims';
+    }
+
+</script>

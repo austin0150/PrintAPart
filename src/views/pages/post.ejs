@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+    <br>
+    <div style="margin:auto; width:70%">
+        <div class='card'>
+          <div class="card-header">
+            <h2><%= typeof blogPostData.title != 'undefined' ? blogPostData.title : 'Blog Post Title' %></h2>
+            <center>  
+            <h2 style="flex-wrap:wrap">
+              <%if ((blogPostData.tags!= undefined) && (blogPostData.tags.length >= 1)) { %>
+                <% blogPostData.tags.forEach(function(tag) { %>
+                  <span class="badge rounded-pill bg-primary" style="color:white;font-weight:normal;margin-right:5px;padding:5px"><%= tag %></span>
+                <% }); %>
+                <% } %>
+                </h2>
+              </center>
+          </div>
+    
+    <div class='card-body'>
+      <h5 style="color:gray"><%= typeof blogPostData.userName != 'undefined' ? blogPostData.userName : 'username' %> 
+        <small><% var date = blogPostData.reviewDate.toDate() %>
+          <% var month = date.getMonth() + 1 %>
+          <% var day = date.getDate() %>
+          <% var year = date.getFullYear() %>
+          <% var date = month + '/' + day + '/' + year %>
+          <%= date %></small></h5>
+      <p><%= typeof blogPostData.body_text != 'undefined' ? blogPostData.body_text : 'Body Text' %></p>
+      <div style="display:flex">
+        <% if ((loggedIn) && (likeIds.includes(JSON.stringify(uid)))) { %>
+          <small><button onclick="like('<%- loggedIn  %>','<%- commId  %>','<%- postId  %>', '<%- uid  %>')" id="likeButton" class="btn btn-success" style="margin-top:10px;margin-bottom:10px;margin-right:10px;" aria-pressed="false">Liked!</button></small>
+        <% } else if (loggedIn && !(JSON.stringify(uid) in likeIds)) { %>
+          <small><button onclick="like('<%- loggedIn  %>','<%- commId  %>','<%- postId  %>', '<%- uid  %>')" id="likeButton" class="btn btn-outline-success" style="margin-top:10px;margin-bottom:10px;margin-right:10px;" aria-pressed="false">Like</button></small>
+        <% } else { %>
+          <!-- Button trigger modal -->
+          <button type="button" class="btn btn-outline-success" data-toggle="modal" data-target="#likePostModal" id="likeButton" style="margin-top:10px;margin-bottom:10px;margin-right:10px;">
+            Like
+          </button>
+
+          <!-- Like Post Modal -->
+          <div class="modal fade" id="likePostModal" tabindex="-1" role="dialog" aria-labelledby="likePostLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <center><h5 class="modal-title" id="likePostLabel">Please log in to like this post.</h5></center>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-footer">
+                  <button id="loginBtn" type="button" class="btn btn-primary" onclick="navToLogIn()">Log In</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% } %>
+        <% if (loggedIn) { %>
+        <small><button class="btn btn-outline-danger" style="margin:10px" onclick="flagPostWarning('<%- commId  %>','<%- postId  %>')">Flag</button></small>
+          <% } %>
+        <% if (roles.includes('Admin')) { %>
+        <small><button class="btn btn-outline-danger" style="margin:10px" onclick="deletePostWarning('<%- commId  %>','<%- postId  %>')">Delete</button></small>
+        <% } %>
+      </div>
+      <h6 class="text-muted"><b id="numLikes"><%- Object.keys(likes).length %></b> likes</h6>
+    </div>
+    <%if (blogPostData.Image != "") { %>
+      <img class="card-img-bottom" style="height:auto" src=<%= typeof blogPostData.Image.url != 'undefined' ? blogPostData.Image.url : 'imgsrc' %> alt="Card image cap">
+    <% } %>  
+    </div>
+    <br>
+
+    <% blogPostData.files.forEach(function(file) { %>
+      <%if(file.shortName != undefined) { %>
+        <p><%- file.shortName %>
+        <a class="btn btn-sm btn-outline-primary" href="<%- file.url %>">Download</a></p>
+      <% } %>
+      
+    <% }); %>
+
+      <h4>Add a comment:</h4>
+      <!-- Include stylesheet -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+<!-- Create the editor container -->
+<div id="editor">
+</div>
+<form id="quillCommentForm" method="POST" action="/add_comment?commId=<%- commId  %>&postId=<%- postId  %>&filter=<%- filter %>">
+<input type="hidden" name="body_text" id="quill-html" required>
+</form>
+<p style="color:red;" class="hide" id='validation'>Please enter a comment.</p>
+<button id="quill-submit" type="button" onclick="quillSubmit('<%- loggedIn  %>','<%- roles  %>')" class="btn btn-primary" style="margin-top:10px">Submit</button>
+
+<!-- Include the Quill library -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<!-- <script src="https://unpkg.com/quill-image-compress@1.2.11/dist/quill.imageCompressor.min.js"></script>
+<script src="/node_modules/quill-image-resize-module/image-resize.min.js"></script> -->
+
+
+<!-- Initialize Quill editor -->
+<script>
+  var toolbarOptions = [['bold', 'italic', 'underline', 'strike'],
+                        [{'list': 'ordered'}, {'list':'bullet'}],
+                        ['link', 'image', 'video']];
+  // createEditor('#editor');
+  // function createEditor(selector)
+  //       {
+  //           let quill = new Quill(selector, {theme: 'snow',
+  //                                 modules: {toolbar: toolbarOptions} });
+            
+  //           quill.on("editor-change", (eventName, ...args) =>
+  //           {
+  //               currentEditor = quill;
+  //           });
+  //       }
+
+  var editors = {'editor': new Quill('#editor', {theme: 'snow',
+                                  modules: {toolbar: toolbarOptions} }) }
+
+// set custom image handler
+if(editors.editor){
+  editors.editor.getModule('toolbar').addHandler('image', () => {
+  selectLocalImage(editors.editor);
+});
+}
+</script>
+
+
+      <% if (loggedIn) { %>
+        <!-- Flag Post Warning Modal -->
+      <div class="modal fade" id="flagPostModal" tabindex="-1" role="dialog" aria-labelledby="flagPostLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <center><h5 class="modal-title" id="flagPostLabel">Why do you want to flag this post?</h5></center>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <form id="flag_box_<%- postId  %>" method="post" action="/flag_post?commId=<%- commId  %>&postId=<%- postId  %>">
+            <div class="modal-body">
+                <div class="form-group" style="margin:5px;">
+                  <textarea class="form-control" rows="2" name="body_text" id="flag_post_body_text" placeholder="Explanation" required></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+              <button id="modalFlagPostBtn_<%- postId  %>" type="submit" class="btn btn-primary">Flag</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+          </form>
+          </div>
+        </div>
+      </div>
+        <% } %>
+      <!-- Post Comment Modal (Unauthorized) -->
+      <div class="modal fade" id="unauthorizedModal" tabindex="-1" role="dialog" aria-labelledby="unauthorizedLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <center><h5 class="modal-title" id="unauthorizedLabel">You are unauthorized to comment on this post.</h5></center>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post Comment Modal (Not Logged In) -->
+      <div class="modal fade" id="notLoggedInToCommentModal" tabindex="-1" role="dialog" aria-labelledby="notLoggedInToCommentLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <center><h5 class="modal-title" id="notLoggedInToCommentLabel">Please log in to comment on this post.</h5></center>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-footer">
+              <button id="loginBtn" type="button" class="btn btn-primary" onclick="navToLogIn()">Log In</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Like Comment Modal -->
+      <div class="modal fade" id="likeCommentModal" tabindex="-1" role="dialog" aria-labelledby="likeCommentLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <center><h5 class="modal-title" id="likeCommentLabel">Please log in to like this comment.</h5></center>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-footer">
+              <button id="loginBtn" type="button" class="btn btn-primary" onclick="navToLogIn()">Log In</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <br><br>
+      <div class="form-group form-inline" style="display: flex;">
+      <h4 class="col-med-2" style="font-size: 16px;">Comments (<%- Object.keys(comments).length %>)</h4>
+        <button style="margin-left:20px;margin-bottom: 18px; font-size: 14px;" class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <% if (filter == "newest") { %>Newest
+            <% } else if (filter =="oldest") { %>Oldest
+              <% } else { %>Last 7 Days
+                <% } %>
+        </button>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/blog_post?commId=<%-commId %>&postId=<%-postId%>&filter=oldest">Oldest</a>
+          <a class="dropdown-item" href="/blog_post?commId=<%-commId %>&postId=<%-postId%>&filter=newest">Newest</a>
+          <a class="dropdown-item" href="/blog_post?commId=<%-commId %>&postId=<%-postId%>&filter=7">Last 7 days</a>
+        </div>
+      </div>
+      
+      <% comments.forEach(function(comment) { %>
+        <% if (comment.data().replyTo == null) { %>
+          <%- include('../partials/comment', {comment : comment.data(), commentId : comment.id, postId : postId}); %>
+        <% } %>
+    <% }); %>
+    </div>
+
+    <% if (roles.includes('Admin')) { %>
+      <!-- Delete Post Warning Modal -->
+      <div class="modal fade" id="deletePostModal_<%- postId  %>" tabindex="-1" role="dialog" aria-labelledby="deletePostLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <center><h5 class="modal-title" id="deletePostLabel">Are you sure you want to delete the following post? This action cannot be undone.</h5></center>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p class="text-muted"><i>User: <%= typeof blogPostData.userName != 'undefined' ? blogPostData.userName : 'username' %></i></p>
+              <p class="text-muted"><i>Post Title: <%= typeof blogPostData.title != 'undefined' ? blogPostData.title : 'title' %></i></p>
+              <p class="text-muted"><i>Post Content: <%= typeof blogPostData.body_text!= 'undefined' ? blogPostData.body_text : 'body' %></i></p>
+            </div>
+            <div class="modal-footer">
+              <button id="modalDeletePostBtn_<%- postId  %>" type="button" class="btn btn-primary" onclick="deletePost('<%- commId  %>','<%- postId  %>')" data-dismiss="modal">Delete</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% } %>
+
+</main>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+
+</body>
+
+</html>
+<script src="https://www.gstatic.com/firebasejs/3.7.4/firebase.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js" type="text/javascript"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script>
+
+  // Initialize Firebase
+  var config = {
+        storageBucket: "gs://printapart-d7319.appspot.com"
+    };
+    firebase.initializeApp(config);
+    //-------------------------------------
+
+ // Function for blog post like button 
+function like(loggedIn, commId, postId, uid) {
+  if (loggedIn == "true"){
+    var btn = document.getElementById("likeButton");
+    if (btn.className == "btn btn-outline-success") {      
+      $.ajax({
+        url: '/add_like_to_post',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({userUid:uid, commId: commId, postId : postId}),
+        success: function(data){
+          console.log(data)
+          likes = data.likes;
+          console.log('save success');
+          btn.setAttribute("class", "btn btn-success");
+          btn.innerHTML = "Liked!";
+          var numLikes= document.getElementById("numLikes");
+          numLikes.innerHTML = Object.keys(likes).length;
+
+        },
+        failure: function(data){
+          console.log("Failed")
+        }
+      }); 
+    
+
+    } else {
+      $.ajax({
+        url: '/remove_like_from_post',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({uid:uid, commId: commId, postId : postId}),
+        success: function(data){
+          console.log(data)
+          likes = data.likes;
+          console.log('success');
+          btn.setAttribute("class", "btn btn-outline-success");
+          btn.innerHTML = "Like";
+          var numLikes= document.getElementById("numLikes");
+          numLikes.innerHTML = Object.keys(likes).length;
+
+        },
+        failure: function(data){
+          console.log("Failed")
+        }
+      });
+      
+    };
+
+
+  } else {
+    $("#likePostModal").modal("show");
+  } ;
+  
+}
+
+// Function for comment like button 
+function likeComment(loggedIn, commId, postId, commentId, uid) {
+  if (loggedIn == "true"){
+    var likeBtnId = "like_btn_" + commentId;
+    var numLikesId = "num_likes_" + commentId;
+    var btn = document.getElementById(likeBtnId);
+    var numLikes = document.getElementById(numLikesId);
+    if (btn.classList.contains('text-muted')) {      
+      $.ajax({
+        url: '/add_like_to_comment',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({userUid:uid, commId: commId, postId : postId, commentId: commentId}),
+        success: function(data){
+          console.log(data)
+          likes = data.likes;
+          console.log('save success');
+          btn.classList.remove("text-muted");
+          btn.style.color = "rgb(0, 132, 255)";
+          numLikes.innerHTML = Object.keys(likes).length;
+
+        },
+        failure: function(data){
+          console.log("Failed")
+        }
+      }); 
+    
+
+    } else {
+      $.ajax({
+        url: '/remove_like_from_comment',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({uid:uid, commId: commId, postId : postId, commentId: commentId}),
+        success: function(data){
+          console.log(data)
+          likes = data.likes;
+          console.log('success');
+          btn.classList.add("text-muted");
+          btn.style.color = "gray";
+          numLikes.innerHTML = Object.keys(likes).length;
+
+        },
+        failure: function(data){
+          console.log("Failed")
+        }
+      });
+      
+    };
+
+
+  } else {
+    $("#likeCommentModal").modal("show");
+  } ;
+  
+}
+  
+function reply2(postId, commentId, roles, loggedIn){
+  if (roles.includes('Blogger')){
+    var replyBoxId = "reply_box_" + commentId
+    // var commentEditorId = "commentEditor_" + commentId
+    var div = document.getElementById(replyBoxId);
+    // var editor = document.getElementById(commentEditorId);
+    div.setAttribute("class", "show");
+    // editor.setAttribute("class", "show")
+  } else if (loggedIn == 'true' && !(roles.includes('Blogger'))) {
+    $("#unauthorizedModal").modal("show");
+  } else {
+    $("#notLoggedInToCommentModal").modal("show");
+  }
+
+}
+
+function cancel(commentId){
+  var replyBoxId = "reply_box_" + commentId
+  var div = document.getElementById(replyBoxId);
+  div.setAttribute("class", "hide");
+  validationId = "validation_" + commentId;
+  document.getElementById(validationId).setAttribute('class', 'hide');
+}
+
+function viewReplies(commentId, numReplies){
+  var replyBoxId = "replies_" + commentId;
+  var btnId = "viewRepliesBtn_" + commentId;
+  var btn = document.getElementById(btnId);
+  var div = document.getElementById(replyBoxId);
+  if (btn.innerText.includes("View replies")){
+    div.setAttribute("class", "show");
+    btn.innerText = "Hide replies";
+  } else {
+    div.setAttribute("class", "hide");
+    btn.innerText = "View replies (" + numReplies.toString() + ")";
+  };
+}
+
+function navToLogIn(){
+  window.location.href = '/login'
+}
+
+function submitComment(loggedIn, roles){
+  console.log(loggedIn)
+  console.log(roles)
+  if (loggedIn == 'true' && roles.includes("Blogger")) {
+    document.forms["commentForm"].submit()
+  } else if (loggedIn == 'true' && !(roles.includes("Blogger"))) {
+    $("#unauthorizedModal").modal("show");
+  } else {
+    $('#notLoggedInToCommentModal').modal("show")
+  };
+};
+
+// Function to moderate comments (displays a warning message before the Admin actually deletes a comment)
+function restrictComment(commId, postId, commentId) {
+  var commentBtnId = "hide_" + commentId;
+  var commentBtn = document.getElementById(commentBtnId);
+  if (commentBtn.innerHTML == "Hide"){
+    var modalId = "#hideCommentModal_" + commentId;
+    $(modalId).modal("show");
+  } else {
+    var modalId = "#showCommentModal_" + commentId;
+    $(modalId).modal("show");
+  }
+}
+
+// The function that actually processes the restriction (either hides or reveals a comment)
+function processRestriction(commId, postId, commentText, commentId){
+  var commentBtnId = "hide_" + commentId;
+  var commentBtn = document.getElementById(commentBtnId);
+  var commentTextId = "comment_" + commentId;
+  var comment = document.getElementById(commentTextId);
+
+  if (commentBtn.innerHTML == "Hide"){
+    $.ajax({
+      url: '/restrict_comment',
+      type: 'POST',
+      contentType: 'application/json',
+      processData: false,
+      data: JSON.stringify({commentId:commentId, commId: commId, postId : postId}),
+      success: function(data){
+        console.log('save success');
+        commentBtn.innerHTML = "Show";
+        console.log(data)
+        // console.log()
+        comment.setAttribute("class", "text-muted");
+        comment.innerHTML="<i>This comment is no longer available.</i>";
+
+      },
+      failure: function(data){
+        console.log("Failed")
+      }
+    }); 
+  } else {
+    $.ajax({
+      url: '/reveal_comment',
+      type: 'POST',
+      contentType: 'application/json',
+      processData: false,
+      data: JSON.stringify({commentId:commentId, commId: commId, postId : postId}),
+      success: function(data){
+        console.log('save success');
+        commentBtn.innerHTML = "Hide";
+        console.log(commentText.length)
+        console.log(typeof(commentText))
+        console.log(data)
+        // comment = data.result;
+        // console.log()
+        comment.classList.remove("text-muted");
+        // comment.innerHTML= commentText;
+        comment.innerHTML= data.result.body_text;
+
+      },
+      failure: function(data){
+        console.log("Failed")
+      }
+    }); 
+  };
+}
+
+function deletePostWarning(commId, postId) {
+    var modalId = "#deletePostModal_" + postId;
+    $(modalId).modal("show");
+  }
+
+function deletePost(commId, postId, loggedIn) {
+  $.ajax({
+    statusCode: {
+      401: function (data) {
+        if (loggedIn) {
+          window.location.href = '/unauthorized'
+        } else {
+          window.location.href = '/login'
+        }
+      }
+    },
+    url: '/delete_post',
+    type: 'POST',
+    contentType: 'application/json',
+    processData: false,
+    data: JSON.stringify({commId: commId, postId : postId}),
+    success: function(data){
+      console.log("success!")
+      window.location.href = '/community_feed?commId='+commId
+    },
+    failure: function(data){
+      console.log("Failed")
+    }
+  }); 
+}
+
+function flagPostWarning(commId, postId) {
+    var modalId = "#flagPostModal";
+    $(modalId).modal("show");
+  }
+
+  function quillSubmit(loggedIn, roles){
+  if (loggedIn == 'true' && roles.includes("Blogger")) {
+    // Get HTML content
+    var html = editors['editor'].root.innerHTML;
+    $('#quill-html').val( html )
+    
+    if (html == "<p><br></p>")
+    {
+      // $('#quill-html').val( html )
+      // console.log(document.getElementById('quill-html').innerText)
+      document.getElementById('validation').setAttribute('class', 'show');
+    } else {
+      // Copy HTML content in hidden form
+      $('#quill-html').val( html )
+      // Post form
+      document.getElementById('validation').setAttribute('class', 'hide');
+      document.getElementById('quillCommentForm').submit();
+      console.log("success")
+    }
+  } else if (loggedIn == 'true' && !(roles.includes("Blogger"))) {
+    $("#unauthorizedModal").modal("show");
+  } else {
+    $('#notLoggedInToCommentModal').modal("show")
+  };
+};
+
+function quillReplySubmit(loggedIn, roles, commentId){
+  if (loggedIn == 'true' && roles.includes("Blogger")) {
+    // Get HTML content
+    var commentEditorId = '#commentEditor_' + commentId;
+    var html = editors[commentEditorId].root.innerHTML;
+
+    // Copy HTML content in hidden form
+    var inputId = '#quillHTML_' + commentId;
+    $(inputId).val( html )
+    if (html == "<p><br></p>")
+    {
+      validationId = "validation_" + commentId;
+      document.getElementById(validationId).setAttribute('class', 'show');
+    } else {
+      // Post form
+      // Post form
+      validationId = "validation_" + commentId;
+      document.getElementById(validationId).setAttribute('class', 'hide');
+      var formId = 'quillCommentForm_' + commentId;
+      document.getElementById(formId).submit();
+      console.log("success")
+    }
+
+    // Post form
+    // var formId = 'quillCommentForm_' + commentId;
+    // document.getElementById(formId).submit();
+    // console.log("success")
+  } else if (loggedIn == 'true' && !(roles.includes("Blogger"))) {
+    $("#unauthorizedModal").modal("show");
+  } else {
+    $('#notLoggedInToCommentModal').modal("show")
+  };
+};
+
+// Code from: https://stackoverflow.com/questions/55654721/express-413-too-large-with-quilljs-image
+// create fake input to upload image to quill
+function selectLocalImage(editor) {
+  const input = document.createElement('input');
+  input.setAttribute('type', 'file');
+  input.setAttribute('accept', 'image/*, video/*')
+  input.click();
+
+  // Listen upload local image and save to server
+  input.onchange = () => {
+    const file = input.files[0];
+    saveImageToServer(editor, file);
+  };
+}
+
+// upload image to server
+async function saveImageToServer(editor, file) {
+  var date = new Date();
+  var mil = Math.round(date.getTime() / 1000);
+  var resultUrl;
+  var filetype = file.type;
+  console.log(filetype)
+
+  var storageRef = firebase.storage().ref("comment_images/" + "<%- uid %>/" + mil +"_"+ file.name);
+
+  var task = storageRef.put(file);
+
+  await task;
+  var url = await storageRef.getDownloadURL();
+  insertToEditor(editor, url, filetype);
+
+}
+
+// manipulate quill to replace b64 image with uploaded image
+function insertToEditor(editor, url, filetype) {
+  console.log("successfully uploaded")
+  // push image url to rich editor.
+  const range = editor.getSelection();
+  if (filetype.startsWith("image")) {
+    editor.insertEmbed(range.index, 'image', url.toString());
+  } else if (filetype.startsWith("video")){
+    editor.insertEmbed(range.index, 'video', url.toString());
+  }
+}
+</script>

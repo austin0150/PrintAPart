@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<body >
+    <main>
+            <h1 style="padding: 20px;">Create New Print Request</h1>
+            <div id="formDiv" class="container text-center" >
+                <!-- <center>
+                <h3>New Part Request</h3>
+                <br> -->
+                    <div class="horizontalContentDiv" style="justify-content: center;">
+                        <p style="text-align: center; max-width: fit-content;">Please specify the desired material, estimated weight, and estimated price.</p>
+
+                        <!-- <div>
+                        <input type="text" class="form-control" id="staticWeight" name="weight" placeholder="Weight (g)">
+                        </div>-->
+
+                        <div class="input-group mb-3" style="justify-content: center; width: 45%;">
+                            <div class="input-group-prepend">
+                              <label class="input-group-text" for="inputGroupSelect01">Material</label>
+                            </div>
+                            <select class="custom-select" id="staticMaterial" name="material">
+                              <option selected>Choose...</option>
+                              <option value="PLA">PLA</option>
+                              <option value="ABS">ABS</option>
+                              <option value="PETG">PETG</option>
+                              <option value="TPE">TPE</option>
+                              <option value="Nylon">Nylon</option>
+                              <option value="PC">PC</option>
+                              <option value="Wood">Wood</option>
+                            </select>
+                          </div>
+
+                          <div class="input-group mb-3" style="width: 45%;">
+                            <div class="input-group-prepend">
+                                <h3 class="input-group-text">Weight</h3>
+                            </div>
+                            <input type="text" class="form-control" id="staticWeight" name="weight" placeholder="Weight (grams)">
+                        </div>
+
+                        <div class="input-group mb-3" style="width: 45%;">
+                            <div class="input-group-prepend">
+                                <h3 class="input-group-text">$</h3>
+                            </div>
+                            <input type="price" class="form-control" id="staticPrice" name="calculatedPrice" placeholder="Price">
+                        </div>
+                    </div>
+                    <br>
+                    <div>
+                        <textarea id="requestMessage" placeholder="Message" name="message" rows="6" cols="75"></textarea>
+                    </div>
+                    <br>
+                    <div class="form-group " style="width: 20%; padding-left: 2em;">
+                        <p>Upload STL models of print</p>
+                        <input type="file" style="display: none;"  id="attach3dFiles" >
+                        <input type="button" class="form-control-file" value="Browse..." onclick="document.getElementById('attach3dFiles').click();" />
+                        <progress id="uploaderBar" class="d-none" max="100"></progress>
+                    </div>
+                    <div id="FileList"></div>
+                    <br>
+                    <button type="submit" class="btn btn-primary mb-2"  onclick="ClickSubmit()" style="font-size: 16px;">Submit</button>
+            </div>
+    </main>
+
+    <script>
+    // Restricts input for the given textbox to the given inputFilter function.
+    function setInputFilter(textbox, inputFilter) {
+        ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function(event) {
+            textbox.addEventListener(event, function() {
+            if (inputFilter(this.value)) {
+                this.oldValue = this.value;
+                this.oldSelectionStart = this.selectionStart;
+                this.oldSelectionEnd = this.selectionEnd;
+            } else if (this.hasOwnProperty("oldValue")) {
+                this.value = this.oldValue;
+                this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+            } else {
+                this.value = "";
+            }
+            });
+        });
+    }
+
+    setInputFilter(document.getElementById("staticWeight"), function(value) {
+        return /^\d*\.?\d*$/.test(value); // Allow digits and '.' only, using a RegExp
+    });
+    setInputFilter(document.getElementById("staticPrice"), function(value) {
+        return /^\d*\.?\d*$/.test(value); // Allow digits and '.' only, using a RegExp
+    });
+</script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/3.7.4/firebase.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+<script>
+
+    var fileCounter = 0;
+    var files = [];
+    var fileObjs = [];
+
+    // Initialize Firebase
+    var config = {
+        storageBucket: "gs://printapart-d7319.appspot.com"
+    };
+    firebase.initializeApp(config);
+    //-------------------------------------
+
+
+    function ClickSubmit(){
+        var body = document.getElementById('requestMessage');
+        var material = document.getElementById('staticMaterial');
+        var price = document.getElementById('staticPrice');
+        var weight = document.getElementById('staticWeight');
+
+        if(!(body.value)){
+            body.style = "color:red;";
+            body.value = "Please enter a message"
+        }
+        else if (!(material.value)) {
+            alert("Please enter a material type");
+        } 
+        else if (!(price.value)){
+            alert("Please enter a valid price");
+        }
+        else if(!(weight.value))
+        {
+            alert("please enter a weight for the print");
+        }
+        else if(files.length < 1)
+        {
+            alert ("Please add one or more STL files to print");
+        }
+        else{
+            console.log("about to submit");
+            SubmitRequest();
+        }
+    }
+    
+    async function SubmitRequest(){
+
+        await uploadFiles();
+
+
+        var materialVal = document.getElementById('staticMaterial').value;
+        var priceVal = document.getElementById('staticPrice').value;
+        var weightVal = document.getElementById('staticWeight').value;
+        var messageVal = document.getElementById('requestMessage').value;
+
+        var requestData = {
+            material : materialVal,
+            calculatedPrice: priceVal,
+            weight: weightVal,
+            files:fileObjs,
+            message:messageVal
+        };
+
+        $.ajax({
+        url: '/add_request',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify(requestData),
+        success: function(data){
+            window.location.href = '/my_requests';
+        }
+      })
+    }
+
+
+    function RemoveFile(fileName)
+    {
+        for( var i = 0; i < files.length; i++){ 
+            if ( files[i].name === fileName) { 
+                files.splice(i, 1); 
+            }
+        }
+    }
+
+    var fileButton = document.getElementById('attach3dFiles');
+    fileButton.addEventListener('change', function(e){
+
+        var file = e.target.files[0];
+
+        if(file == undefined)
+        {
+            return;
+        }
+
+        files.push(file);
+
+        AddNewFileHtml(file);
+    });
+
+    /*
+    var previewImgBtn = document.getElementById('ImgUploader');
+    previewImgBtn.addEventListener('change', async function(e){
+
+        var date = new Date();
+        var mil = Math.round(date.getTime() / 1000);
+        previewImg = e.target.files[0];
+
+        if(previewImg == undefined)
+        {
+            return;
+        }
+        var progBar = document.getElementById('previewUploaderBar');
+
+        if(progBar.classList.contains("d-none"))
+        {
+            progBar.classList.remove("d-none");
+        }
+
+        previewImgObj = await uploadFile(previewImg,"previewUploaderBar",mil,'preview_images/<%- uid %>/');
+    });
+    */
+
+    function AddNewFileHtml(file)
+    {
+        parentElement = document.getElementById('FileList');
+
+        childElement = document.createElement('div');
+        appendChildElement = parentElement.appendChild(childElement);
+        appendChildElement.id = file.name;
+
+        childPar = document.createElement('p');
+        appendedPar = appendChildElement.appendChild(childPar);
+        appendedPar.classList.add('fileInline');
+        appendedPar.innerHTML = file.name;
+
+        childBtn = document.createElement('div');
+        appendedBtn = childElement.appendChild(childBtn);
+        appendedBtn.classList.add('btn');
+        appendedBtn.classList.add('btn-secondary');
+        appendedBtn.classList.add('btn-sm');
+        appendedBtn.classList.add('fileInline');
+        appendedBtn.innerHTML = 'remove';
+        appendedBtn.onclick = function(){
+            RemoveFile(file.name);
+            var listElement = document.getElementById(file.name);
+            listElement.remove();
+        };
+    }
+
+    // This function toggles the visiblity of the buttons if multiple files are uploaded.
+    function toggleVisible(id) {
+        var inputObj = document.getElementById(id); 
+        if(inputObj.classList.contains('d-none')) {
+            inputObj.classList.remove('d-none')
+        } else {
+            inputObj.classList.add('d-none')
+        }
+    }
+
+    async function uploadFiles()
+    {
+        var date = new Date();
+        var mil = Math.round(date.getTime() / 1000);
+
+        var progBar = document.getElementById('uploaderBar');
+        if(progBar.classList.contains("d-none"))
+        {
+            progBar.classList.remove("d-none");
+        }
+
+        for (i = 0; i < files.length; i++) {
+            console.log(files[i]);
+            var fileObj = await uploadFile(files[i],"uploaderBar",mil,'3d_models/<%- uid %>/');
+            var fileUrl = 
+            fileObjs.push(fileObj);
+            
+        }
+    }
+
+    // This function 
+    async function uploadFile(file, progressId,time,folder){
+        var resultUrl;
+        var progressObj = document.getElementById(progressId);
+        var storageRef = firebase.storage().ref(folder + "<%- uid %>_" +time +"_"+ file.name);
+
+        var task = storageRef.put(file);
+
+        task.on('state_changed', 
+        function progress(snapshot) {
+            var percentage = (snapshot.bytesTransferred/snapshot.totalBytes)*100;
+            progressObj.value = percentage;
+
+        }, 
+        function error(err) {
+            
+        });
+
+        await task;
+        var url = await storageRef.getDownloadURL();
+        var name = await storageRef.fullPath;
+        var fileObj = {
+            url:url,
+            name:name,
+            shortName:file.name
+        }
+        return fileObj;
+
+    }
+
+    function removeFile(divId, dataId){
+        var dataObj = document.getElementById(dataId);
+        toggleVisible(divId);
+        dataObj.value = "";     
+    }
+</script>
+</body>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+
+</html>

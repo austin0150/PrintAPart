@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+    <br>
+    <div style="margin:auto; width:70%">
+        <div class='card'>
+    <h2 class='card-header'><font style="color:red">Flagged: </font><%= typeof blogPostData.title != 'undefined' ? blogPostData.title : 'Blog Post Title' %></h2>
+    <div class='card-body'>
+      <h5 style="color:gray"><%= typeof blogPostData.userName != 'undefined' ? blogPostData.userName : 'username' %> 
+        <small><% var date = blogPostData.reviewDate.toDate() %>
+          <% var month = date.getMonth() + 1 %>
+          <% var day = date.getDate() %>
+          <% var year = date.getFullYear() %>
+          <% var date = month + '/' + day + '/' + year %>
+          <%= date %></small></h5>
+      <p><%= typeof blogPostData.body_text != 'undefined' ? blogPostData.body_text : 'Body Text' %></p>
+      <div style="display:flex">
+        <small><button style="margin-right:10px" class="btn btn-outline-success" onclick="unflagPostWarning('<%- commId  %>','<%- postId  %>')">Unflag</button></small>
+      <small><button class="btn btn-outline-danger" onclick="deletePostWarning('<%- commId  %>','<%- postId  %>')">Delete</button></small>
+    </div>
+    </div> 
+    </div>
+      <br>
+
+      <br><br>
+      <h6>Reports:</h6>
+      <% comments.forEach(function(comment) { %>
+        <%- include('../partials/flagged_comment', {comment : comment.data(), commentId : comment.id}); %>
+        <% }); %>
+    </div>
+
+    <% if (roles.includes('Admin')) { %>
+      <!-- Delete Post Warning Modal -->
+      <div class="modal fade" id="deletePostModal_<%- postId  %>" tabindex="-1" role="dialog" aria-labelledby="deletePostLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <center><h5 class="modal-title" id="deletePostLabel">Are you sure you want to delete the following post? This action cannot be undone.</h5></center>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p class="text-muted"><i>User: <%= typeof blogPostData.userName != 'undefined' ? blogPostData.userName : 'username' %></i></p>
+              <p class="text-muted"><i>Post Title: <%= typeof blogPostData.title != 'undefined' ? blogPostData.title : 'title' %></i></p>
+              <p class="text-muted"><i>Post Content: <%= typeof blogPostData.body_text!= 'undefined' ? blogPostData.body_text : 'body' %></i></p>
+            </div>
+            <div class="modal-footer">
+              <button id="modalDeletePostBtn_<%- postId  %>" type="button" class="btn btn-primary" onclick="deletePost('<%- commId  %>','<%- postId  %>')" data-dismiss="modal">Delete</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Unflag Post Warning Modal -->
+      <div class="modal fade" id="unflagPostModal_<%- postId  %>" tabindex="-1" role="dialog" aria-labelledby="unflagPostLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <center><h5 class="modal-title" id="unflagPostLabel">Are you sure you want to unflag this post?</h5></center>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-footer">
+              <button id="modalUnflagPostBtn_<%- postId  %>" type="button" class="btn btn-primary" onclick="unflagPost('<%- commId  %>','<%- postId  %>')" data-dismiss="modal">Unflag</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% } %>
+
+</main>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+
+</body>
+
+</html>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js" type="text/javascript"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script>
+    function deletePostWarning(commId, postId) {
+    var modalId = "#deletePostModal_" + postId;
+    $(modalId).modal("show");
+  }
+
+function deletePost(commId, postId, loggedIn) {
+  $.ajax({
+    statusCode: {
+      401: function (data) {
+        if (loggedIn) {
+          window.location.href = '/unauthorized'
+        } else {
+          window.location.href = '/login'
+        }
+      }
+    },
+    url: '/delete_post',
+    type: 'POST',
+    contentType: 'application/json',
+    processData: false,
+    data: JSON.stringify({commId: commId, postId : postId}),
+    success: function(data){
+      console.log("success!")
+      window.location.href = '/community_feed?commId='+commId
+    },
+    failure: function(data){
+      console.log("Failed")
+    }
+  }); 
+}
+
+function unflagPostWarning(commId, postId) {
+    var modalId = "#unflagPostModal_" + postId;
+    $(modalId).modal("show");
+  }
+
+function unflagPost(commId, postId, loggedIn) {
+  $.ajax({
+    statusCode: {
+      401: function (data) {
+        if (loggedIn) {
+          window.location.href = '/unauthorized'
+        } else {
+          window.location.href = '/login'
+        }
+      }
+    },
+    url: '/unflag_post',
+    type: 'POST',
+    contentType: 'application/json',
+    processData: false,
+    data: JSON.stringify({commId: commId, postId : postId}),
+    success: function(data){
+      console.log("success!")
+      window.location.href = '/community_feed?commId='+commId
+    },
+    failure: function(data){
+      console.log("Failed")
+    }
+  }); 
+}
+</script>

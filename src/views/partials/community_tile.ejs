@@ -1,0 +1,12 @@
+<a href="#" class="clickableDiv" style="color:inherit;text-decoration: none; margin:10px; width: 18rem;align-items:center;">
+  <div style="height:100%;display: flex;align-items: center;">
+<div class="card border-primary" id="communityCard" style="height:90%;width:100%;margin:10px;" onclick="openComm('<%- commId  %>')">
+  <div class="card-body">
+      <h2 class="card-title" style="font-weight: 500; font-size: 24px;"><%= typeof community.name != 'undefined' ? community.name : 'default' %></h2>
+      <h4 class="card-subtitle mb-2 text-muted"><%= typeof community.homeCity != 'undefined' ? community.homeCity : 'default' %></h3>
+      <p class="card-text" style="font-size: 16px;"><%= typeof community.description != 'undefined' ? community.description : '' %></p>
+    </div>
+  </div>
+</div>
+</a>
+  

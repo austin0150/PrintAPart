@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <%- include('../partials/head'); %>
+</head>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<body>
+  <main style="justify-content:center;">
+    <br>
+    <div id="loginbox" class="container text-center" >
+      <h2 style="font-weight:500; font-size: 24px;">Log In</h2>
+      <div class="form-group row">
+        <label for="staticEmail" class="col-sm-2 col-form-label">Email</label>
+        <div class="col-sm-12">
+          <input type="text" class="form-control" id="staticEmail" name="email" placeholder="Email Address">
+          <div class="invalid-feedback">This Username/Password combination was not found</div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="inputPassword" class="col-sm-2 col-form-label">Password</label>
+        <div class="col-sm-12">
+          <input type="password" class="form-control" id="inputPassword" name="password" placeholder="Password">
+        </div>
+      </div>
+      <div style="width:100%; height:4em;"></div>
+      <div class="container text-center" style="justify-content:center;">
+        <button class="btn btn-primary mb-2" onclick="Login(document.getElementById('staticEmail').value,document.getElementById('inputPassword').value)">Log In</button>
+        <div style="width:100%; height:1em;"></div>
+        <button class="btn btn-success mb-2" onclick="signUp()">Create Account</button>
+        <div style="width:100%; height:1em;"></div>
+        <p style="padding-top:6px; font-size: 16px;">Forgot password? <a href="/forgot_pass">Click here!</a></p>
+      </div>
+      
+    </div>
+  </main>
+
+  <script>
+    function Login(email,password){
+      $.ajax({
+        statusCode: {
+          500: function(data) {
+            var userField = document.getElementById('staticEmail');
+            userField.classList.add("is-invalid");
+            
+          }
+        },
+        url: '/login_auth',
+        type: 'POST',
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify({
+          email: email,
+          password:password  
+        }),
+        success: function(data){
+          var now = new Date();
+          var time = now.getTime();
+          var expireTime = time + 1000*36000;
+          now.setTime(expireTime);
+          document.cookie = ("bearer=" + data + ";expires="+now.toUTCString()+";");
+          window.location.href ="/";
+        }
+      })
+    }
+
+  function signUp(){
+    window.location.href = "/signup";
+  }
+
+  </script>
+</body>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+</html>

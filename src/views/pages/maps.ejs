@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.0.1/mapbox-gl.css" rel="stylesheet" />
+    <%- include('../partials/head'); %>
+    
+</head>
+
+<!-- Removed class container from body tag -->
+<body> 
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+    <div class="container">
+        <h1>Map of Our Printers</h1>
+        <div id='map' style='width: 100%; height: 60em;'></div>
+
+
+        <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYXVzdGluMDE1MCIsImEiOiJja2tvdjhmcmUwbDBhMnZudjdjdzlzZnF3In0.Sdts2QuoixpW4A08k4mzlg';
+        var map = new mapboxgl.Map({
+        container: 'map',
+        center: [-83.1499,42.6056],
+        zoom: 8,
+        style: 'mapbox://styles/mapbox/streets-v11'
+        });
+
+        // create a HTML element for each feature
+        var el;
+        var marker;
+        <% zipDocs.forEach(function(doc) { %>
+            el = document.createElement('div');
+            el.className = 'marker';
+            el.innerHTML = '<span><b>' + <%- doc.data().count %> + '</b></span>'
+
+            marker = new mapboxgl.Marker(el)
+            .setLngLat([<%- doc.data().long %>, <%- doc.data().lat %>])
+            .setPopup(new mapboxgl.Popup({offset: 25}).setHTML("<h1> <%- doc.id %> </h1>")) // add popup
+            .addTo(map);
+        <% }); %>
+
+        </script>
+
+    </div>
+
+</main>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+
+
+</body>
+</html>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>

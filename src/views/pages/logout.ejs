@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+<head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <%- include('../partials/head'); %>
+</head>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+<body >
+
+ <!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-analytics.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.2.1/firebase-auth.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  var firebaseConfig = {
+    apiKey: "API-KEY",
+    authDomain: "printapart.firebaseapp.com",
+    databaseURL: "https://printapart.firebaseio.com",
+    projectId: "printapart",
+    storageBucket: "printapart.appspot.com",
+    messagingSenderId: "999999999999",
+    appId: "1:999999999999:web:dbcef417065b328943507f",
+    measurementId: "G-ZZZZZZZZ"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+</script>
+
+  <script>
+    firebase.auth().signOut().then(() => {
+        console.log("Signed Out");
+        document.cookie = "bearer= ; expires = Thu, 01 Jan 1970 00:00:00 GMT"
+        window.location.href = '/';
+    }).catch((error) => {
+        console.log(error);
+    });
+  </script>
+</body>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+</html>

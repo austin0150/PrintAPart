@@ -1,0 +1,42 @@
+
+  <div id="request_<%- requestId  %>" name="unapproved">  
+    <div class="card" style="padding:5px; margin:10px">
+      <div class="card-body">
+            <h2 class="card-title"></h2>
+            <h4 class="card-subtitle mb-2 text-muted"><%= typeof request.userName != 'undefined' ? request.userName : 'default' %></h4>
+              <h4 class="card-subtitle mb-2 text-muted"><% var date = request.uploadDate.toDate() %>
+                <% var month = date.getMonth() + 1 %>
+                <% var day = date.getDate() %>
+                <% var year = date.getFullYear() %>
+                <% var date = month + '/' + day + '/' + year %>
+                <%= date %></h4>
+            <p class="card-text"><%= typeof request.message != 'undefined' ? request.message : 'default' %></p>
+            <div style="display:flex">
+            <button class="btn btn-primary" style="margin:5px" onclick="openRequest('<%- requestId  %>')">View Request</button>
+            <% if ((request.StatusNumber == "1") && (roles.includes("Admin"))){ %>
+              <button id="approveBtn_<%- requestId  %>" class="btn btn-primary" style="margin:5px" onclick="approveRequestValidation('<%- requestId  %>')">Approve Request</button>
+            <% } %>
+          </div>
+      </div>
+    </div>
+    <!-- <button class="btn btn-primary btn-sm" style="float:right" onclick="approveRequestValidation('<%- requestId  %>')">Approve</button> -->
+    </div>
+    <!-- Approve Request Warning Modal -->
+<% if (request.StatusNumber == "1"){ %>
+<div class="modal fade" id="approveRequestModal_<%- requestId  %>" tabindex="-1" role="dialog" aria-labelledby="approveRequestLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <center><h5 class="modal-title" id="approveRequestLabel">Are you sure you want to approve this request?</h5></center>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button id="modalApproveBtn_<%- requestId  %>" type="button" class="btn btn-primary" onclick="approveRequest('<%- requestId  %>')" data-dismiss="modal">Approve</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+    <% } %>

@@ -1,0 +1,300 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;800&display=swap');
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+main {
+    flex: 1 0 auto;
+    min-height:100%;
+}
+
+main::after {
+    content: "";
+    display: block;
+}
+
+.footer-wrapper{
+    background-color: #00308a;
+    flex-shrink: none;
+    text-align: center;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+    padding: 8px;
+}
+
+.commTileDiv{
+    width: 45%;
+    background-color: lightgreen;
+    text-align: center;
+    border-radius: 25px;
+    border-style: solid;
+    border-color:black;
+    padding: 20px;
+    margin: 10px;
+}
+
+#loginbox {
+    border-radius: 5%;
+    background: white;
+    padding: 10px;
+    width: 30em;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0,0, 0.19);
+}
+
+#formDiv {
+    border-radius: 5%;
+    background: white;
+    padding: 10px;
+    width: fit-content;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0,0, 0.19);
+}
+
+.horizontalContentDiv {
+    display: flex;
+    justify-content: center;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+}
+
+.horizontalContentDiv > div {
+    padding: 10px;
+}
+
+#requestMessage {
+    padding: 10px;
+}
+
+#communityCard{
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0,0, 0.19);
+    border-color: blue;
+    border-width: 2px;
+    display: block;
+    text-decoration: none;
+}
+
+.clickableDiv:hover {
+    background-color: blue;
+    border-radius: 2%;
+}
+
+.feedCardContainer{
+    margin-bottom: 15px;
+}
+
+.card-img-top {
+    width: 100%;
+    height: 15vw;
+    object-fit: cover;
+    border-bottom: 1px solid steelblue;
+}
+
+
+#requestCard{
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0,0, 0.19);
+    border-width: 2px;
+    display: block;
+    text-decoration: none;
+}
+
+/*New Post Styles*/
+.title-label-wrapper{
+    font-size: large;
+    font-weight: 500;
+}
+
+.create-post-wrapper{
+    margin:auto;
+    width: 70%;
+    padding: 10px;
+    border: 3px blue;
+}
+
+.file-upload-button-wrapper{
+    padding-bottom: 15px;
+}
+
+.submit-button-wrapper{
+    padding-top: 15px;
+}
+
+ 
+.nav-item{
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    padding-left: 10px;
+    font-size: 16px;
+}
+
+.navbar-logo-wrapper{
+    padding-left: 10%;
+}
+
+.hide{
+    display:none;
+}
+
+.show{
+    display: block;
+}
+
+.fileInline{
+    display: inline-block;
+    margin-right: 2%;
+}
+
+
+h1 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 35px;
+    text-align: center;
+    padding: 18px; 
+}
+
+h2 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 20px;
+    text-align: center;
+}
+
+h3 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+}
+
+h4 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+}
+
+
+h5, h6 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+}
+
+label {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 18px;
+}
+
+p, li {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300; 
+    font-size: 18px;
+}
+
+th {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400; 
+    font-size: 18px;
+}
+
+td {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300; 
+    font-size: 16px;
+}
+
+input, textarea {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 300; 
+    font-size: 18px;
+}
+
+button {
+    font-family: 'Poppins', sans-serif;
+}
+
+.marker {width:0; height:0;}
+
+.marker  span {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  box-sizing:border-box;
+  width: 30px;
+  height: 30px;
+  color:#fff;
+  background: #693;
+  border:solid 2px;
+  border-radius: 0 70% 70%;
+  box-shadow:0 0 2px #000;
+  cursor: pointer;
+  transform-origin:0 0;
+  transform: rotateZ(-135deg);
+}
+
+.marker b {transform: rotateZ(135deg)}
+
+.mapboxgl-popup {
+    max-width: 200px;
+  }
+  
+  .mapboxgl-popup-content {
+    text-align: center;
+    font-family: 'Open Sans', sans-serif;
+  }
+
+.sidebar {
+    height: 100%;
+  width: 30%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  padding-top: 16px;
+  overflow-y: scroll;
+}
+
+#flaggedNotes:hover {
+    font-weight: bold;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    pointer-events: all !important;
+  }
+
+ .test_comment img {
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.test_comment iframe {
+    max-height: 100%;
+    max-width: 100%;
+}
+
+
+td {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+
+}
+
+th {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.datalist {
+   height:50px !important;
+   max-height:80px !important;
+   overflow-y:auto !important;
+}

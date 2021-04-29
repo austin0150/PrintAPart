@@ -1,0 +1,28 @@
+{
+    "name": "PrintAPart",
+    "main": "server.js",
+    "dependencies": {
+        "@google-cloud/firestore": "^4.7.1",
+        "@google-cloud/storage": "^5.8.1",
+        "@paypal/checkout-server-sdk": "^1.0.2",
+        "@paypal/payouts-sdk": "^1.1.0",
+        "@paypal/paypal-js": "^2.1.9",
+        "@popperjs/core": "^2.6.0",
+        "axios": "^0.21.1",
+        "cookie-parser": "^1.4.5",
+        "ejs": "^3.1.5",
+        "express": "^4.17.1",
+        "firebase": "^8.2.1",
+        "firebase-admin": "^9.4.2",
+        "firebaseui": "^4.7.1",
+        "mapbox-geocoding": "^0.1.5",
+        "node-fetch": "^2.6.1"
+    },
+    "devDependencies": {
+        "chai": "^4.3.1",
+        "mocha": "^8.3.0"
+    },
+    "scripts": {
+        "test": "mocha"
+    }
+}

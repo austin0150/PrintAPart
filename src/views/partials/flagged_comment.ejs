@@ -1,0 +1,9 @@
+<div class="alert alert-primary" role="alert" style="padding:10px">
+    <p><b><%= typeof comment.userName != 'undefined' ? comment.userName : 'User' %>: </b><%= typeof comment.body_text != 'undefined' ? comment.body_text : 'Comment' %></p>
+    <p style="text-align: right;" class="text-muted"><% var date = comment.commentDate.toDate() %>
+        <% var month = date.getMonth() + 1 %>
+        <% var day = date.getDate() %>
+        <% var year = date.getFullYear() %>
+        <% var date = month + '/' + day + '/' + year %>
+        <%= date %></p>
+  </div>

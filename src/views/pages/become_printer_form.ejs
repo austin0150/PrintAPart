@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" type="image/jpg" href="images/faviconImageClear.png">
+
+<head>
+    <%- include('../partials/head'); %>
+</head>
+<body>
+
+<header>
+    <%- include('../partials/header'); %>
+</header>
+
+<main>
+    <h1><%= typeof formData.fName != 'undefined' ? formData.fName : '' %> <%= typeof formData.lName != 'undefined' ? formData.lName : '' %> would like to become a Printer</h1>
+    <div class="container">
+        <p><span class="lead">UID: </span><span><%- typeof formId != 'undefined' ? formId : 'formId' %></span></p>
+        <p><span class="lead">PayPal Email: </span><span><%- typeof formData.paypal_email != 'undefined' ? formData.paypal_email : 'paypal_email' %></span></p>
+        <p><span class="lead">Date of Form Submission: </span>
+            <span>
+                <% var date = formData.date.toDate() %>
+                <% var month = date.getMonth() + 1 %>
+                <% var day = date.getDate() %>
+                <% var year = date.getFullYear() %>
+                <% var date = month + '/' + day + '/' + year %>
+                <%= date %>
+            </span></p>
+
+        <p><span class="lead">Comment: </span><span><%- typeof formData.comment != 'undefined' ? formData.comment : 'none' %></span></p>
+        <p><span class="lead">Zip Code: </span><span><%- typeof formData.zipCode != 'undefined' ? formData.zipCode : 'none' %></span></p>
+        <p><span class="lead">Current Roles: </span><span><%- typeof formRoles != 'undefined' ? formRoles : 'none' %></span></p>
+
+
+    <button type="button" class="btn btn-success" id="acceptButton" onclick="acceptButton()">Accept</button>
+    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#rejectModal">Reject</button>
+    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#permaRejectModal">Permanently Reject</button>
+
+    <div class="modal fade" id="rejectModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Rejecting Become Printer Form</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form>
+              <div class="modal-title">
+                <label for="rejected-name" class="col-form-label">Recipient: <%= typeof formData.fName != 'undefined' ? formData.fName : '' %> <%= typeof formData.lName != 'undefined' ? formData.lName : '' %> </label>
+              </div>
+              <div class="form-group">
+                <label for="comment-text" class="col-form-label">Reason(s) for rejecting this Become Printer Form: </label>
+                <textarea class="form-control" id="adminComment"></textarea>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="rejectButton()">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="permaRejectModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Permanently Rejecting Become Printer Form</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form>
+                <div class="modal-title">
+                  <label for="rejected-name" class="col-form-label">Recipient: <%= typeof formData.fName != 'undefined' ? formData.fName : '' %> <%= typeof formData.lName != 'undefined' ? formData.lName : '' %> </label>
+                </div>
+                <div class="form-group">
+                  <label for="comment-text" class="col-form-label">Reason(s) for rejecting this Become Printer Form: </label>
+                  <textarea class="form-control" id="adminComment"></textarea>
+                </div>
+              </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" onclick="permaRejectButton()">Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+</main>
+
+<footer>
+    <%- include('../partials/footer'); %>
+</footer>
+
+</body>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js" type="text/javascript"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+
+<script>
+function acceptButton()
+{
+    window.location.href = '/accept_printer_form?uid=<%- formData.uid  -%>';
+}
+
+function rejectButton()
+{
+    let adminComment = document.getElementById("adminComment").value;
+    console.log(adminComment)
+    window.location.href = "/reject_printer_form?uid=<%- formData.uid  -%>&adminComment="+adminComment;
+}
+
+function permaRejectButton()
+{
+    let adminComment = document.getElementById("adminComment").value;
+    window.location.href = "/permanently_reject_printer_form?uid=<%- formData.uid  -%>&adminComment="+adminComment;
+}
+</script>
+</html>
